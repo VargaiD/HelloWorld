@@ -1,9 +1,11 @@
 package cz.muni.fi.pv254.parsing;
 
 import cz.muni.fi.pv254.dto.GameDTO;
+import cz.muni.fi.pv254.dto.GenreDTO;
 import cz.muni.fi.pv254.dto.RecommendationDTO;
 import cz.muni.fi.pv254.dto.UserDTO;
 import cz.muni.fi.pv254.facade.GameFacade;
+import cz.muni.fi.pv254.facade.GenreFacade;
 import cz.muni.fi.pv254.facade.RecommendationFacade;
 import cz.muni.fi.pv254.facade.UserFacade;
 import org.json.*;
@@ -47,6 +49,8 @@ public class App
     private RecommendationFacade recommendationFacade;
     @Autowired
     private UserFacade userFacade;
+    @Autowired
+    private GenreFacade genreFacade;
 
     public int getOffsetDiff() {
         return offsetDiff;
@@ -138,11 +142,93 @@ public class App
      * @param gameID id of game to get total number
      * @return total number of reviews
      */
-    private int getTotalNumberOfReviews(long gameID) {
+    public int getTotalNumberOfReviews(long gameID) {
         String url = "https://store.steampowered.com/appreviews/" + Long.toString(gameID) + "?json=1&language=all&filter=recent&start_offset=0";
         JSONObject obj = new JSONObject(getJsonFromUrl(url).toString());
         JSONObject summary = obj.getJSONObject("query_summary");
         return summary.getInt("total_reviews");
+    }
+
+    /**
+     * Download short description for given game
+     * @param gameID id of game
+     * @return description
+     */
+    public String downloadShortDescritpion(long gameID) {
+        return downloadGameDetails(gameID).get(0);
+    }
+
+    /**
+     * Downlaod long description for given game
+     * @param gameID id of game
+     * @return long descrpiton
+     */
+    public String downloadLongDescription(long gameID) {
+        return downloadGameDetails(gameID).get(1);
+    }
+
+    /**
+     * Download url of picture on steam page for given game
+     * @param gameID id of game
+     * @return url of the picture
+     */
+    public String downloadGamePictureUrl(long gameID) {
+        return downloadGameDetails(gameID).get(2);
+    }
+
+    /**
+     * Downloads some details about game
+     * @param gameID id of game
+     * @return list in format [short description, long description, picture url)
+     */
+    public List<String> downloadGameDetails(long gameID) {
+        List<String> out = new ArrayList<>();
+        try {
+            String url = "https://store.steampowered.com/api/appdetails?appids="+Long.toString(gameID);
+            JSONObject obj = new JSONObject(getJsonFromUrl(url).toString());
+            obj = obj.getJSONObject(Long.toString(gameID));
+            obj = obj.getJSONObject("data");
+            out.add(obj.getString("about_the_game"));
+            out.add(obj.getString("short_description"));
+            out.add(obj.getString("header_image"));
+        }
+        catch (Exception e) {
+            System.out.println(e.toString());
+            out = new ArrayList<>(Arrays.asList("","",""));
+        }
+        return out;
+    }
+
+    private Set<GenreDTO> parseGenres(GameDTO game) {
+        long gameID = game.getSteamId();
+        Set<GenreDTO> out = new HashSet<>();
+        try {
+            String url = "https://store.steampowered.com/api/appdetails?appids="+Long.toString(gameID);
+            JSONObject obj = new JSONObject(getJsonFromUrl(url).toString());
+            obj = obj.getJSONObject(Long.toString(gameID));
+            obj = obj.getJSONObject("data");
+            JSONArray arr = obj.getJSONArray("genres");
+            for (int i = 0; i < arr.length(); i++) {
+                String genreName = arr.getJSONObject(i).getString("description");
+//                System.out.println(genre);
+                GenreDTO genre = genreFacade.findByName(genreName);
+                if (genre == null) {
+                    genre = new GenreDTO();
+                    genre.setName(genreName);
+//                    Set<GameDTO> games = genre.getGames();
+//                    games.add(game);
+//                    genre.setGames(games);
+                    genre = genreFacade.add(genre);
+                }
+                out.add(genre);
+//                RecommendationDTO rec = parseRecommendation(arr.getJSONObject(i),game);
+//                recommendations.add(rec);
+            }
+        }
+        catch (Exception e) {
+            System.out.println(e.toString());
+        }
+        return out;
     }
 
     private UserDTO parseAuthor(JSONObject authorJSON) {
@@ -199,6 +285,9 @@ public class App
             game = gameFacade.add(game);
         }
         game = gameFacade.findBySteamId(game.getSteamId());
+        Set<GenreDTO> genres = parseGenres(game);
+        game.setGenres(genres);
+        gameFacade.update(game);
         List<RecommendationDTO> recommendations = new ArrayList<>();
 
         try {
@@ -413,15 +502,18 @@ public class App
         App app = new App();
         app.setOffsetDiff(100);
         app.setDebug(4);
-        for (int id : games) {
-            System.out.println(app.downloadGameName(id));
-            System.out.println(app.getTotalNumberOfReviews(id));
-            for (int i = 0 ; i< 1 ; i++) { // DO it more times
-//                Thread.sleep(10000); // wait for 10 seconds, so steam wont block us
-                app.inteligentParseOld(id);
-
-            }
-        }
+//        for (int id : games) {
+//            System.out.println(app.downloadGameName(id));
+//            System.out.println(app.getTotalNumberOfReviews(id));
+//            for (int i = 0 ; i< 1 ; i++) { // DO it more times
+////                Thread.sleep(10000); // wait for 10 seconds, so steam wont block us
+//                app.inteligentParseOld(id);
+//
+//            }
+//        }
+        GameDTO game = new GameDTO();
+        game.setSteamId(57690L);
+        System.out.println(app.parseGenres(game));
 
     }
 
