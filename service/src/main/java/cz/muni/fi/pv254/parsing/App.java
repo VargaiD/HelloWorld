@@ -283,6 +283,7 @@ public class App
             game = new GameDTO();
             game.setSteamId(gameID);
             game.setName(downloadGameName(gameID));
+            game.setShortDescription(downloadShortDescritpion(gameID));
             game = gameFacade.add(game);
         }
         game = gameFacade.findBySteamId(game.getSteamId());
