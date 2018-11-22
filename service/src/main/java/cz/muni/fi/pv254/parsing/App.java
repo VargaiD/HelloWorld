@@ -199,6 +199,11 @@ public class App
         return out;
     }
 
+    /**
+     * Download genres for given game and store them in database
+     * @param game id of the game
+     * @return list of genre dtos
+     */
     private Set<GenreDTO> parseGenres(GameDTO game) {
         long gameID = game.getSteamId();
         Set<GenreDTO> out = new HashSet<>();
@@ -231,6 +236,11 @@ public class App
         return out;
     }
 
+    /**
+     * download and store author info
+     * @param authorJSON json part of author
+     * @return stored user in userdto format
+     */
     private UserDTO parseAuthor(JSONObject authorJSON) {
         Long authorId = authorJSON.getLong("steamid");
         UserDTO author = userFacade.findBySteamId(authorId);
@@ -245,10 +255,14 @@ public class App
 //            author = userFacade.findById(author.getId());
         }
         return author;
-
-
     }
 
+    /**
+     * Download and sotre recommendations for given game
+     * @param review review in json format form api
+     * @param game game to which the rcommendations will be assigned
+     * @return store recommendation in dro format
+     */
     private RecommendationDTO parseRecommendation(JSONObject review,GameDTO game) {
         Long steamId = review.getLong("recommendationid");
         RecommendationDTO rec = recommendationFacade.findBySteamId(steamId);
@@ -489,7 +503,6 @@ public class App
         }
     }
 
-
     /**
      * Parse all games stored in gameIds list
      * it uses old parsing method
@@ -521,6 +534,17 @@ public class App
         GameDTO game = new GameDTO();
         game.setSteamId(57690L);
         System.out.println(app.parseGenres(game));
+
+        // user wraith 'Wraith_Skyline' id 76561197994264572
+        // made revies on games
+        // 223810 - Ys I & II Chronicles+ - vela recenzii
+        // 530320 -Wandersong
+        // 896460 - Lucah: Born of a Dream
+        // 837330 - Crimson Shift
+        // 688420 - Bad North
+        // 868520 - killer7
+        // 658690 - Rage in Peace
+
 
     }
 
