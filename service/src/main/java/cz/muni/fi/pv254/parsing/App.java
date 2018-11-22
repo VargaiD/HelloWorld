@@ -265,6 +265,7 @@ public class App
             rec.setVotedUp(votedUp);
             rec.setVotesUp(votesUp);
             rec.setWeightedVoteScore(weightedVoteScore);
+            // TODO je to lepsie takto setGame, alebo radsej do hry pridat cely list recommendations ?
             rec.setGame(game);
             rec = recommendationFacade.add(rec);
         }
@@ -287,6 +288,9 @@ public class App
         game = gameFacade.findBySteamId(game.getSteamId());
         Set<GenreDTO> genres = parseGenres(game);
         game.setGenres(genres);
+        // TODO toto tu musi byt, inak ak hra nema ziadne reviews neulozia sa zanre
+        // TODO |
+        // TODO V
         gameFacade.update(game);
         List<RecommendationDTO> recommendations = new ArrayList<>();
 
@@ -463,6 +467,8 @@ public class App
                 Element body = doc.body();
                 Elements nieco = body.getElementsByAttributeValue("class","actual_persona_name");
                 if (nieco.isEmpty()) {
+                    // TODO tu to niekedy pada ze nie je strana dostupna
+                    // TODO aj tu to treba zopakovat {tries}
                     throw new IllegalArgumentException("User Name not found for id "+Long.toString(userId));
                 }
                 name = nieco.get(0).text();
