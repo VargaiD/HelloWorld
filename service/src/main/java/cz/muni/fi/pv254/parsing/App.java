@@ -1,9 +1,11 @@
 package cz.muni.fi.pv254.parsing;
 
 import cz.muni.fi.pv254.dto.GameDTO;
+import cz.muni.fi.pv254.dto.GenreDTO;
 import cz.muni.fi.pv254.dto.RecommendationDTO;
 import cz.muni.fi.pv254.dto.UserDTO;
 import cz.muni.fi.pv254.facade.GameFacade;
+import cz.muni.fi.pv254.facade.GenreFacade;
 import cz.muni.fi.pv254.facade.RecommendationFacade;
 import cz.muni.fi.pv254.facade.UserFacade;
 import org.json.*;
@@ -47,6 +49,8 @@ public class App
     private RecommendationFacade recommendationFacade;
     @Autowired
     private UserFacade userFacade;
+    @Autowired
+    private GenreFacade genreFacade;
 
     public int getOffsetDiff() {
         return offsetDiff;
@@ -138,13 +142,140 @@ public class App
      * @param gameID id of game to get total number
      * @return total number of reviews
      */
-    private int getTotalNumberOfReviews(long gameID) {
+    public int getTotalNumberOfReviews(long gameID) {
         String url = "https://store.steampowered.com/appreviews/" + Long.toString(gameID) + "?json=1&language=all&filter=recent&start_offset=0";
         JSONObject obj = new JSONObject(getJsonFromUrl(url).toString());
         JSONObject summary = obj.getJSONObject("query_summary");
         return summary.getInt("total_reviews");
     }
 
+    /**
+     * Download short description for given game
+     * @param gameID id of game
+     * @return description
+     */
+    public String downloadShortDescritpion(long gameID) {
+        return downloadGameDetails(gameID).get(0);
+    }
+
+    /**
+     * Downlaod long description for given game
+     * @param gameID id of game
+     * @return long descrpiton
+     */
+    public String downloadLongDescription(long gameID) {
+        return downloadGameDetails(gameID).get(1);
+    }
+
+    /**
+     * Download url of picture on steam page for given game
+     * @param gameID id of game
+     * @return url of the picture
+     */
+    public String downloadGamePictureUrl(long gameID) {
+        return downloadGameDetails(gameID).get(2);
+    }
+
+    /**
+     * Downloads some details about game
+     * @param gameID id of game
+     * @return list in format [short description, long description, picture url)
+     */
+    public List<String> downloadGameDetails(long gameID) {
+        List<String> out = new ArrayList<>();
+        try {
+            String url = "https://store.steampowered.com/api/appdetails?appids="+Long.toString(gameID);
+            JSONObject obj = new JSONObject(getJsonFromUrl(url).toString());
+            obj = obj.getJSONObject(Long.toString(gameID));
+            obj = obj.getJSONObject("data");
+            out.add(obj.getString("about_the_game"));
+            out.add(obj.getString("short_description"));
+            out.add(obj.getString("header_image"));
+        }
+        catch (Exception e) {
+            System.out.println(e.toString());
+            out = new ArrayList<>(Arrays.asList("","",""));
+        }
+        return out;
+    }
+
+    /**
+     * Loads games from top100.csv file
+     * @return true if successfull
+     */
+    public boolean loadTop100() {
+        System.out.println(System.getProperty("user.dir"));
+        try {
+            // TODO cant find right path to file
+//            java.util.Properties props = new java.util.Properties();
+//            java.net.URL url = Config.class.getClassLoader().getResource("sql.properties");
+//            props.load(url.openStream());
+//            String basedir = props.getProperty("project.root"); // This will return the value of the ${basedir}
+//            System.out.println(basedir);
+            String file = "/service/src/main/resources/top100csv";
+            List<Long> ids = Load.loadGames(file);
+            this.gameIds.addAll(ids);
+        }
+        catch (IOException e) {
+            System.out.println(e.getMessage());
+            return false;
+        }
+        return !getGameIds().isEmpty();
+    }
+
+    /**
+     * Load top 100 games and downlaod them
+     * @return list of numbers, count of downloaded games
+     */
+    public List<Integer> downloadTop100() {
+        if (loadTop100()) {
+            return inteligentParseAllGanes();
+        }
+        return null;
+    }
+
+    /**
+     * Download genres for given game and store them in database
+     * @param game id of the game
+     * @return list of genre dtos
+     */
+    private Set<GenreDTO> parseGenres(GameDTO game) {
+        long gameID = game.getSteamId();
+        Set<GenreDTO> out = new HashSet<>();
+        try {
+            String url = "https://store.steampowered.com/api/appdetails?appids="+Long.toString(gameID);
+            JSONObject obj = new JSONObject(getJsonFromUrl(url).toString());
+            obj = obj.getJSONObject(Long.toString(gameID));
+            obj = obj.getJSONObject("data");
+            JSONArray arr = obj.getJSONArray("genres");
+            for (int i = 0; i < arr.length(); i++) {
+                String genreName = arr.getJSONObject(i).getString("description");
+//                System.out.println(genre);
+                GenreDTO genre = genreFacade.findByName(genreName);
+                if (genre == null) {
+                    genre = new GenreDTO();
+                    genre.setName(genreName);
+//                    Set<GameDTO> games = genre.getGames();
+//                    games.add(game);
+//                    genre.setGames(games);
+                    genre = genreFacade.add(genre);
+                }
+                out.add(genre);
+//                RecommendationDTO rec = parseRecommendation(arr.getJSONObject(i),game);
+//                recommendations.add(rec);
+            }
+        }
+        catch (Exception e) {
+            System.out.println(e.toString());
+        }
+        return out;
+    }
+
+    /**
+     * download and store author info
+     * @param authorJSON json part of author
+     * @return stored user in userdto format
+     */
     private UserDTO parseAuthor(JSONObject authorJSON) {
         Long authorId = authorJSON.getLong("steamid");
         UserDTO author = userFacade.findBySteamId(authorId);
@@ -153,16 +284,20 @@ public class App
             author = new UserDTO();
             author.setSteamId(authorId);
             author.setName(authorName);
-            author.setEmail(authorName+"@steam.com");
+            author.setEmail(Long.toString(authorId)+"@steam.com");
             author.setIsAdmin(false);
             author = userFacade.add(author,"password");
 //            author = userFacade.findById(author.getId());
         }
         return author;
-
-
     }
 
+    /**
+     * Download and sotre recommendations for given game
+     * @param review review in json format form api
+     * @param game game to which the rcommendations will be assigned
+     * @return store recommendation in dro format
+     */
     private RecommendationDTO parseRecommendation(JSONObject review,GameDTO game) {
         Long steamId = review.getLong("recommendationid");
         RecommendationDTO rec = recommendationFacade.findBySteamId(steamId);
@@ -179,7 +314,7 @@ public class App
             rec.setVotedUp(votedUp);
             rec.setVotesUp(votesUp);
             rec.setWeightedVoteScore(weightedVoteScore);
-            rec.setGame(game);
+//            rec.setGame(game);
             rec = recommendationFacade.add(rec);
         }
         return rec;
@@ -196,10 +331,15 @@ public class App
             game = new GameDTO();
             game.setSteamId(gameID);
             game.setName(downloadGameName(gameID));
+            game.setShortDescription(downloadShortDescritpion(gameID));
             game = gameFacade.add(game);
         }
-        game = gameFacade.findBySteamId(game.getSteamId());
-        List<RecommendationDTO> recommendations = new ArrayList<>();
+//        game = gameFacade.findBySteamId(game.getSteamId());
+        Set<GenreDTO> genres = parseGenres(game);
+        game.setGenres(genres);
+        gameFacade.update(game);
+
+        Set<RecommendationDTO> recommendations = new HashSet<>();
 
         try {
             String url = "https://store.steampowered.com/appreviews/"
@@ -227,6 +367,13 @@ public class App
         } catch (Exception e) {
             System.out.println(e.toString());
         }
+//        game.setRecommendations(recommendations);
+        for (RecommendationDTO r : recommendations) {
+            r.setGame(game);
+            recommendationFacade.update(r);
+        }
+
+
         if (debug >=1) {
             System.out.println("Received size: "+Integer.toString(recommendations.size()));
             System.out.println("Expected size: "+ Long.toString(getTotalNumberOfReviews(gameID)));
@@ -374,6 +521,8 @@ public class App
                 Element body = doc.body();
                 Elements nieco = body.getElementsByAttributeValue("class","actual_persona_name");
                 if (nieco.isEmpty()) {
+                    // TODO tu to niekedy pada ze nie je strana dostupna
+                    // TODO aj tu to treba zopakovat {tries}
                     throw new IllegalArgumentException("User Name not found for id "+Long.toString(userId));
                 }
                 name = nieco.get(0).text();
@@ -392,7 +541,6 @@ public class App
 
         }
     }
-
 
     /**
      * Parse all games stored in gameIds list
@@ -413,15 +561,29 @@ public class App
         App app = new App();
         app.setOffsetDiff(100);
         app.setDebug(4);
-        for (int id : games) {
-            System.out.println(app.downloadGameName(id));
-            System.out.println(app.getTotalNumberOfReviews(id));
-            for (int i = 0 ; i< 1 ; i++) { // DO it more times
-//                Thread.sleep(10000); // wait for 10 seconds, so steam wont block us
-                app.inteligentParseOld(id);
+//        for (int id : games) {
+//            System.out.println(app.downloadGameName(id));
+//            System.out.println(app.getTotalNumberOfReviews(id));
+//            for (int i = 0 ; i< 1 ; i++) { // DO it more times
+////                Thread.sleep(10000); // wait for 10 seconds, so steam wont block us
+//                app.inteligentParseOld(id);
+//
+//            }
+//        }
+        GameDTO game = new GameDTO();
+        game.setSteamId(57690L);
+        System.out.println(app.parseGenres(game));
 
-            }
-        }
+        // user wraith 'Wraith_Skyline' id 76561197994264572
+        // made revies on games
+        // 223810 - Ys I & II Chronicles+ - vela recenzii
+        // 530320 -Wandersong
+        // 896460 - Lucah: Born of a Dream
+        // 837330 - Crimson Shift
+        // 688420 - Bad North
+        // 868520 - killer7
+        // 658690 - Rage in Peace
+
 
     }
 

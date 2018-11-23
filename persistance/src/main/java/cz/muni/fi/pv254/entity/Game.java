@@ -1,5 +1,7 @@
 package cz.muni.fi.pv254.entity;
 
+import org.hibernate.annotations.Type;
+
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.util.HashSet;
@@ -36,7 +38,7 @@ public class Game {
     @OneToMany(mappedBy = "game", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<Word> words = new HashSet<>();
 
-    @Column(length=512)
+    @Column(columnDefinition = "TEXT")
     private String shortDescription;
 
     public Game(Long steamId, String name, String shortDescription) {

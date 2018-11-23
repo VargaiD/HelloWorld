@@ -34,11 +34,22 @@ public class HomeController {
     public String Download(){
         app.setDebug(1);
         app.setOffsetDiff(100);
-        app.addGameId(892760L);
-        app.addGameId(911520L);
-        app.addGameId(964030L);
-        app.inteligentParseAllGanes();
-
+        app.addGameId(530320L);
+        app.addGameId(896460L);
+        app.addGameId(837330L);
+        app.addGameId(688420L);
+        app.addGameId(868520L);
+        app.addGameId(658690L);
+//        app.addGameId(892760L);
+//        app.addGameId(911520L);
+//        app.addGameId(964030L);
+        List<Integer> out = app.inteligentParseAllGanes();
+        int j = 0;
+        for (Long i : app.getGameIds()) {
+            System.out.println("Expected: " + Long.toString(app.getTotalNumberOfReviews(i)) + ", Received: " + Integer.toString(out.get(j)));
+            j++;
+        }
+//        app.downloadTop100();
         return "/home";
     }
 }
