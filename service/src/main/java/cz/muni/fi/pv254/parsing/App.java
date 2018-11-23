@@ -207,7 +207,12 @@ public class App
         System.out.println(System.getProperty("user.dir"));
         try {
             // TODO cant find right path to file
-            String file = "${maven.multiModuleProjectDirectory}/service/src/main/resources/top100csv";
+//            java.util.Properties props = new java.util.Properties();
+//            java.net.URL url = Config.class.getClassLoader().getResource("sql.properties");
+//            props.load(url.openStream());
+//            String basedir = props.getProperty("project.root"); // This will return the value of the ${basedir}
+//            System.out.println(basedir);
+            String file = "/service/src/main/resources/top100csv";
             List<Long> ids = Load.loadGames(file);
             this.gameIds.addAll(ids);
         }
@@ -279,7 +284,7 @@ public class App
             author = new UserDTO();
             author.setSteamId(authorId);
             author.setName(authorName);
-            author.setEmail(authorName+"@steam.com");
+            author.setEmail(Long.toString(authorId)+"@steam.com");
             author.setIsAdmin(false);
             author = userFacade.add(author,"password");
 //            author = userFacade.findById(author.getId());
@@ -309,8 +314,7 @@ public class App
             rec.setVotedUp(votedUp);
             rec.setVotesUp(votesUp);
             rec.setWeightedVoteScore(weightedVoteScore);
-            // TODO je to lepsie takto setGame, alebo radsej do hry pridat cely list recommendations ?
-            rec.setGame(game);
+//            rec.setGame(game);
             rec = recommendationFacade.add(rec);
         }
         return rec;
@@ -330,14 +334,12 @@ public class App
             game.setShortDescription(downloadShortDescritpion(gameID));
             game = gameFacade.add(game);
         }
-        game = gameFacade.findBySteamId(game.getSteamId());
+//        game = gameFacade.findBySteamId(game.getSteamId());
         Set<GenreDTO> genres = parseGenres(game);
         game.setGenres(genres);
-        // TODO toto tu musi byt, inak ak hra nema ziadne reviews neulozia sa zanre
-        // TODO |
-        // TODO V
         gameFacade.update(game);
-        List<RecommendationDTO> recommendations = new ArrayList<>();
+
+        Set<RecommendationDTO> recommendations = new HashSet<>();
 
         try {
             String url = "https://store.steampowered.com/appreviews/"
@@ -365,6 +367,13 @@ public class App
         } catch (Exception e) {
             System.out.println(e.toString());
         }
+//        game.setRecommendations(recommendations);
+        for (RecommendationDTO r : recommendations) {
+            r.setGame(game);
+            recommendationFacade.update(r);
+        }
+
+
         if (debug >=1) {
             System.out.println("Received size: "+Integer.toString(recommendations.size()));
             System.out.println("Expected size: "+ Long.toString(getTotalNumberOfReviews(gameID)));
