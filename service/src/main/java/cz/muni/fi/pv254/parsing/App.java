@@ -415,6 +415,27 @@ public class App
         return sizes;
     }
 
+    public void downloadGameOnly(long gameID) {
+        GameDTO game = gameFacade.findBySteamId(gameID);
+        if (game == null) {
+            game = new GameDTO();
+            game.setSteamId(gameID);
+            game.setName(downloadGameName(gameID));
+            game.setShortDescription(downloadShortDescritpion(gameID));
+            game = gameFacade.add(game);
+        }
+        Set<GenreDTO> genres = parseGenres(game);
+        game.setGenres(genres);
+        gameFacade.update(game);
+    }
+
+    public void downloadAllGamesOnly() {
+        for (Long id : gameIds) {
+            downloadGameOnly(id);
+        }
+
+    }
+
     /**
      * Download reviews for given gameid
      *
