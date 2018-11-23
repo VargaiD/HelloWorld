@@ -200,6 +200,36 @@ public class App
     }
 
     /**
+     * Loads games from top100.csv file
+     * @return true if successfull
+     */
+    public boolean loadTop100() {
+        System.out.println(System.getProperty("user.dir"));
+        try {
+            // TODO cant find right path to file
+            String file = "${maven.multiModuleProjectDirectory}/service/src/main/resources/top100csv";
+            List<Long> ids = Load.loadGames(file);
+            this.gameIds.addAll(ids);
+        }
+        catch (IOException e) {
+            System.out.println(e.getMessage());
+            return false;
+        }
+        return !getGameIds().isEmpty();
+    }
+
+    /**
+     * Load top 100 games and downlaod them
+     * @return list of numbers, count of downloaded games
+     */
+    public List<Integer> downloadTop100() {
+        if (loadTop100()) {
+            return inteligentParseAllGanes();
+        }
+        return null;
+    }
+
+    /**
      * Download genres for given game and store them in database
      * @param game id of the game
      * @return list of genre dtos
