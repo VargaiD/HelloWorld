@@ -34,11 +34,11 @@ public class HomeController {
     public String Download(){
         app.setDebug(1);
         app.setOffsetDiff(100);
-        app.addGameId(892760L);
-        app.addGameId(911520L);
-        app.addGameId(964030L);
-        app.inteligentParseAllGanes();
-
+//        app.addGameId(892760L);
+//        app.addGameId(911520L);
+//        app.addGameId(964030L);
+//        app.inteligentParseAllGanes();
+        app.downloadTop100();
         return "/home";
     }
 }
