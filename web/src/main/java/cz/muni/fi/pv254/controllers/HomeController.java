@@ -34,12 +34,12 @@ public class HomeController {
     public String Download(){
         app.setDebug(1);
         app.setOffsetDiff(100);
-        app.addGameId(530320L);
-        app.addGameId(896460L);
-        app.addGameId(837330L);
-        app.addGameId(688420L);
-        app.addGameId(868520L);
-        app.addGameId(658690L);
+//        app.addGameId(530320L);
+//        app.addGameId(896460L);
+//        app.addGameId(837330L);
+//        app.addGameId(688420L);
+//        app.addGameId(868520L);
+//        app.addGameId(658690L);
 //        app.addGameId(892760L);
 //        app.addGameId(911520L);
 //        app.addGameId(964030L);
@@ -49,8 +49,8 @@ public class HomeController {
 //            System.out.println("Expected: " + Long.toString(app.getTotalNumberOfReviews(i)) + ", Received: " + Integer.toString(out.get(j)));
 //            j++;
 //        }
-        app.downloadAllGamesOnly();
-//        app.downloadTop100();
+//        app.downloadAllGamesOnly();
+        app.downloadTop100();
         return "/home";
     }
 }
