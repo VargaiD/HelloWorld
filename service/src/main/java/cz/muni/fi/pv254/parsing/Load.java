@@ -38,33 +38,33 @@ public class Load {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        
+
         return games;
     }
     
-    /**
-     * Loads games from games.csv located in resources of this project
-     * @return list of game ids
-     * @throws IOException 
-     */
-    public static List<Long> loadGames() throws IOException {        
-        String fileName = "games.csv";
-        ClassLoader classLoader = new Load().getClass().getClassLoader();         
-        File file = new File(classLoader.getResource(fileName).getFile());
-        
-        List<Long> games = new ArrayList<>();
-        
-        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
-             String line;
-             
-             while ((line = br.readLine()) != null) {                
-                String[] game = line.split(",");               
-                games.add(Long.valueOf(game[0].trim()));
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        
-        return games;
-    }
+//    /**
+//     * Loads games from games.csv located in resources of this project
+//     * @return list of game ids
+//     * @throws IOException
+//     */
+//    public static List<Long> loadGames() throws IOException {
+//        String fileName = "games.csv";
+//        ClassLoader classLoader = new Load().getClass().getClassLoader();
+//        File file = new File(classLoader.getResource(fileName).getFile());
+//
+//        List<Long> games = new ArrayList<>();
+//
+//        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+//             String line;
+//
+//             while ((line = br.readLine()) != null) {
+//                String[] game = line.split(",");
+//                games.add(Long.valueOf(game[0].trim()));
+//            }
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//
+//        return games;
+//    }
 }

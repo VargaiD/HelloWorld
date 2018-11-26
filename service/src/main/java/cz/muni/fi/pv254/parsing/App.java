@@ -20,10 +20,8 @@ import javax.xml.ws.http.HTTPException;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.SocketTimeoutException;
-import java.net.URL;
+import java.net.*;
+import java.nio.file.Paths;
 import java.util.*;
 
 /**
@@ -206,14 +204,10 @@ public class App
     public boolean loadTop100() {
         System.out.println(System.getProperty("user.dir"));
         try {
-            // TODO cant find right path to file
-//            java.util.Properties props = new java.util.Properties();
-//            java.net.URL url = Config.class.getClassLoader().getResource("sql.properties");
-//            props.load(url.openStream());
-//            String basedir = props.getProperty("project.root"); // This will return the value of the ${basedir}
-//            System.out.println(basedir);
-            String file = "/service/src/main/resources/top100csv";
-            List<Long> ids = Load.loadGames(file);
+            String path = this.getClass().getClassLoader().getResource("").getPath();
+            String fullPath = URLDecoder.decode(path, "UTF-8");
+            String file = "../../resources/top100.csv";
+            List<Long> ids = Load.loadGames(fullPath + file);
             this.gameIds.addAll(ids);
         }
         catch (IOException e) {
