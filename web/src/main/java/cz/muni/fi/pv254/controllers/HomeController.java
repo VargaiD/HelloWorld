@@ -9,9 +9,12 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import sun.swing.BakedArrayList;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Controller
@@ -50,7 +53,18 @@ public class HomeController {
 //            j++;
 //        }
 //        app.downloadAllGamesOnly();
-        app.downloadTop100();
+        app.loadTop100();
+        List<Integer> lst = new ArrayList<>();
+        for (long id : app.getGameIds()) {
+            String name = app.downloadGameName(id);
+            int num = app.getTotalNumberOfReviews(id);
+            System.out.println(id + " " + name + " " + num);
+            lst.add(num);
+        }
+        Collections.sort(lst);
+        for (Integer i : lst) {
+            System.out.println(i);
+        }
         return "/home";
     }
 }

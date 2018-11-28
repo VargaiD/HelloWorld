@@ -505,17 +505,15 @@ public class App
      * @return Name of the game
      */
     public String downloadGameName(long gameId) {
-        String url = "https://store.steampowered.com/app/" + Long.toString(gameId);
         String name = "";
         try {
-            Document doc = Jsoup.connect(url).get();
-            Element body = doc.body();
-            Elements nieco = body.getElementsByAttributeValue("class","details_block");
-            name = nieco.get(0).text();
-            name = name.replaceFirst("Title: ", "");
-            name = name.replaceFirst(" Genre(.*)","");
+            String url = "https://store.steampowered.com/api/appdetails?appids="+Long.toString(gameId);
+            JSONObject obj = new JSONObject(getJsonFromUrl(url).toString());
+            obj = obj.getJSONObject(Long.toString(gameId));
+            obj = obj.getJSONObject("data");
+            name = obj.getString("name");
         }
-        catch (IOException e) {
+        catch (Exception e) {
             System.out.println(e.toString());
         }
         return name;
