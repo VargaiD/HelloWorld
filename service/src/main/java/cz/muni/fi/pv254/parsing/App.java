@@ -350,8 +350,14 @@ public class App
                     break;
                 }
                 for (int i = 0; i < arr.length(); i++) {
-                    RecommendationDTO rec = parseRecommendation(arr.getJSONObject(i),game);
-                    recommendations.add(rec);
+                    JSONObject recc = arr.getJSONObject(i);
+                    recc = recc.getJSONObject("author");
+                    long num_reviews = recc.getLong("num_reviews");
+//                    System.out.println(num_reviews);
+                    if (num_reviews >= 10) {
+                        RecommendationDTO rec = parseRecommendation(arr.getJSONObject(i), game);
+                        recommendations.add(rec);
+                    }
                 }
                 if (debug >= 2)
                     System.out.println("Retrieved new items with offset "+Integer.toString(offset)+": "+Integer.toString(recommendations.size()-oldSize));
@@ -426,6 +432,12 @@ public class App
     public void downloadAllGamesOnly() {
         for (Long id : gameIds) {
             downloadGameOnly(id);
+            try {
+                Thread.sleep(2000L);
+            }
+            catch (InterruptedException e) {
+                System.out.println(e.toString());
+            }
         }
 
     }

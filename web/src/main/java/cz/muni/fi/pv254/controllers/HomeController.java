@@ -52,19 +52,21 @@ public class HomeController {
 //            System.out.println("Expected: " + Long.toString(app.getTotalNumberOfReviews(i)) + ", Received: " + Integer.toString(out.get(j)));
 //            j++;
 //        }
-//        app.downloadAllGamesOnly();
         app.loadTop100();
-        List<Integer> lst = new ArrayList<>();
-        for (long id : app.getGameIds()) {
-            String name = app.downloadGameName(id);
-            int num = app.getTotalNumberOfReviews(id);
-            System.out.println(id + " " + name + " " + num);
-            lst.add(num);
-        }
-        Collections.sort(lst);
-        for (Integer i : lst) {
-            System.out.println(i);
-        }
+//        app.downloadAllGamesOnly();
+        app.inteligentParseAllGanes();
+//        app.loadTop100();
+//        List<Integer> lst = new ArrayList<>();
+//        for (long id : app.getGameIds()) {
+//            String name = app.downloadGameName(id);
+//            int num = app.getTotalNumberOfReviews(id);
+//            System.out.println(id + " " + name + " " + num);
+//            lst.add(num);
+//        }
+//        Collections.sort(lst);
+//        for (Integer i : lst) {
+//            System.out.println(i);
+//        }
         return "/home";
     }
 }
