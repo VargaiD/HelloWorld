@@ -1,6 +1,7 @@
 package cz.muni.fi.pv254.facade;
 
 import cz.muni.fi.pv254.dto.GameDTO;
+import cz.muni.fi.pv254.dto.UserDTO;
 import cz.muni.fi.pv254.entity.Game;
 
 import java.util.List;
@@ -47,4 +48,11 @@ public interface GameFacade {
      * @return game
      */
     GameDTO findBySteamId(Long id);
+
+    /**
+     * Find games recommended by user
+     * @param author
+     * @return list of games
+     */
+    List<GameDTO>findRecommendedByUser(UserDTO author);
 }

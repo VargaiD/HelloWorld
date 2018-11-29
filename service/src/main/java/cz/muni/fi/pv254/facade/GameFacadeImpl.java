@@ -3,7 +3,9 @@ package cz.muni.fi.pv254.facade;
 import cz.muni.fi.pv254.GameService;
 import cz.muni.fi.pv254.MappingService;
 import cz.muni.fi.pv254.dto.GameDTO;
+import cz.muni.fi.pv254.dto.UserDTO;
 import cz.muni.fi.pv254.entity.Game;
+import cz.muni.fi.pv254.entity.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -68,5 +70,10 @@ public class GameFacadeImpl implements GameFacade {
             return null;
         }
         return mappingService.mapTo(game,GameDTO.class);
+    }
+
+    @Override
+    public List<GameDTO> findRecommendedByUser(UserDTO author) {
+        return mappingService.mapTo(gameService.findRecommendedByUser(mappingService.mapTo(author, User.class)), GameDTO.class);
     }
 }

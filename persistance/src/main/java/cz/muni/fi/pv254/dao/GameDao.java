@@ -6,6 +6,8 @@
 package cz.muni.fi.pv254.dao;
 
 import cz.muni.fi.pv254.entity.Game;
+import cz.muni.fi.pv254.entity.User;
+
 import java.util.List;
 
 /**
@@ -58,4 +60,11 @@ public interface GameDao {
      * @return game
      */
     Game findBySteamId(Long id);
+
+    /**
+     * Find games recommended by user
+     * @param author
+     * @return list of games
+     */
+    List<Game>findRecommendedByUser(User author);
 }

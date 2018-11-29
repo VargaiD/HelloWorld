@@ -1,6 +1,7 @@
 package cz.muni.fi.pv254;
 
 import cz.muni.fi.pv254.entity.Game;
+import cz.muni.fi.pv254.entity.User;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -48,4 +49,11 @@ public interface GameService {
      * @return game
      */
     Game findBySteamId(Long id);
+
+    /**
+     * Find games recommended by user
+     * @param author
+     * @return list of games
+     */
+    List<Game>findRecommendedByUser(User author);
 }
