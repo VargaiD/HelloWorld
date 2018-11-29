@@ -395,7 +395,7 @@ public class App
         Long authorId = authorJSON.getLong("steamid");
         UserDTO author = userFacade.findBySteamId(authorId);
         if (author == null) {
-            String authorName = downloadUserName(authorId);
+            String authorName = Long.toString(authorId);//downloadUserName(authorId);
             author = new UserDTO();
             author.setSteamId(authorId);
             author.setName(authorName);
@@ -455,7 +455,7 @@ public class App
         gameFacade.update(game);
 
         Set<RecommendationDTO> recommendations = new HashSet<>();
-
+        // TODO recevied size vs parsed size
         try {
             String url = "https://store.steampowered.com/appreviews/"
                     + Long.toString(gameID) +
@@ -532,6 +532,7 @@ public class App
         List<Integer> sizes = new ArrayList<>();
         for (Long id : gameIds) {
             sizes.add(inteligentParse(id));
+            // TODO remove downloaded game from gameids
         }
         return sizes;
     }
