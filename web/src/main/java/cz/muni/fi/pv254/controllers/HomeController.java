@@ -35,7 +35,7 @@ public class HomeController {
 
     @RequestMapping(value = "/", method = RequestMethod.POST)
     public String Download(){
-        app.setDebug(1);
+        app.setDebug(2);
         app.setOffsetDiff(100);
 //        app.addGameId(530320L);
 //        app.addGameId(896460L);
@@ -52,9 +52,12 @@ public class HomeController {
 //            System.out.println("Expected: " + Long.toString(app.getTotalNumberOfReviews(i)) + ", Received: " + Integer.toString(out.get(j)));
 //            j++;
 //        }
-        app.loadTop100();
+//        app.loadTop100();
+//        app.inteligentParse(787860);
+//        app.inteligentParse(360430);
+        app.createTestDataFoCF();
 //        app.downloadAllGamesOnly();
-        app.inteligentParseAllGanes();
+//        app.inteligentParseAllGanes();
 //        app.loadTop100();
 //        List<Integer> lst = new ArrayList<>();
 //        for (long id : app.getGameIds()) {
