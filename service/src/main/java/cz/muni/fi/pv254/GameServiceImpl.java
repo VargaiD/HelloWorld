@@ -2,6 +2,7 @@ package cz.muni.fi.pv254;
 
 import cz.muni.fi.pv254.dao.GameDao;
 import cz.muni.fi.pv254.entity.Game;
+import cz.muni.fi.pv254.entity.User;
 import cz.muni.fi.pv254.exception.PersistenceException;
 import org.springframework.stereotype.Service;
 
@@ -85,6 +86,17 @@ public class GameServiceImpl implements GameService {
     public Game findBySteamId(Long id) {
         try {
             return gameDao.findBySteamId(id);
+        } catch (NullPointerException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw new PersistenceException(ex.getMessage());
+        }
+    }
+
+    @Override
+    public List<Game> findRecommendedByUser(User author) {
+        try {
+            return gameDao.findRecommendedByUser(author);
         } catch (NullPointerException ex) {
             throw ex;
         } catch (Exception ex) {

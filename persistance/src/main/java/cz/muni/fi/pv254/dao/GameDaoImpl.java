@@ -7,6 +7,7 @@ package cz.muni.fi.pv254.dao;
 
 import cz.muni.fi.pv254.entity.Game;
 import cz.muni.fi.pv254.entity.Genre;
+import cz.muni.fi.pv254.entity.User;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -83,6 +84,20 @@ public class GameDaoImpl implements GameDao {
             return game;
         }
         catch (NoResultException e) {
+            return null;
+        }
+    }
+
+    public List<Game>findRecommendedByUser(User author){
+        if (author == null || author.getId() == null)
+            throw new IllegalArgumentException("Cannot search for null user");
+
+        try {
+            return em.createQuery("SELECT game from Game game INNER JOIN" +
+                    " Recommendation recommendation where recommendation.author.id= :author", Game.class)
+                    .setParameter("author", author.getId()).getResultList();
+        }
+        catch (NoResultException e){
             return null;
         }
     }
