@@ -94,7 +94,7 @@ public class GameDaoImpl implements GameDao {
 
         try {
             return em.createQuery("SELECT game from Game game INNER JOIN" +
-                    " Recommendation recommendation where recommendation.author.id= :author", Game.class)
+                    " Recommendation recommendation on game.id = recommendation.game.id where recommendation.author.id= :author", Game.class)
                     .setParameter("author", author.getId()).getResultList();
         }
         catch (NoResultException e){

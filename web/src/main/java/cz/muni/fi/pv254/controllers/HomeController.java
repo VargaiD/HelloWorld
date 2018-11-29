@@ -1,5 +1,6 @@
 package cz.muni.fi.pv254.controllers;
 
+import cz.muni.fi.pv254.facade.GameFacade;
 import cz.muni.fi.pv254.facade.UserFacade;
 import cz.muni.fi.pv254.parsing.App;
 import org.slf4j.Logger;
@@ -24,6 +25,12 @@ public class HomeController {
 
     @Autowired
     private App app;
+
+    @Autowired
+    private GameFacade gameFacade;
+
+    @Autowired
+    private UserFacade userFacade;
 
     @RequestMapping(value = "/", method = RequestMethod.GET)
     public String Home(Model model,
@@ -56,6 +63,7 @@ public class HomeController {
 //        app.inteligentParse(787860);
 //        app.inteligentParse(360430);
         app.createTestDataFoCF();
+        System.out.println(gameFacade.findRecommendedByUser(userFacade.findById(4L)));
 //        app.downloadAllGamesOnly();
 //        app.inteligentParseAllGanes();
 //        app.loadTop100();
