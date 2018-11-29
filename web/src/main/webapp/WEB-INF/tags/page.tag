@@ -33,7 +33,7 @@
 
         <ul class="nav navbar-nav">
           <li class="${activeNavbarItem == 'Home' ? 'active' : ''}"><a href="${pageContext.request.contextPath}/">Home</a></li>
-
+          <li class="${activeNavbarItem == 'Game' ? 'active' : ''}"><a href="${pageContext.request.contextPath}/game/download">Games</a></li>
           <!--admin view-->
           <c:if test="${authUser.isAdmin}">
           <li class="${activeNavbarItem == 'Users' ? 'active' : ''}"><a href="${pageContext.request.contextPath}/user/list">Users</a></li>
