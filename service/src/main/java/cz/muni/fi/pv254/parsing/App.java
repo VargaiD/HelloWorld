@@ -4,6 +4,7 @@ import cz.muni.fi.pv254.dto.GameDTO;
 import cz.muni.fi.pv254.dto.GenreDTO;
 import cz.muni.fi.pv254.dto.RecommendationDTO;
 import cz.muni.fi.pv254.dto.UserDTO;
+import cz.muni.fi.pv254.entity.Game;
 import cz.muni.fi.pv254.facade.GameFacade;
 import cz.muni.fi.pv254.facade.GenreFacade;
 import cz.muni.fi.pv254.facade.RecommendationFacade;
@@ -100,6 +101,126 @@ public class App
     public App() {
 
         gameIds = new ArrayList<Long>();
+    }
+
+    public void createTestDataFoCF(){
+        List<UserDTO> users = new ArrayList<>();
+        long i = 1;
+        for (char a = 'A'; a <= 'J'; a++){
+            UserDTO user = new UserDTO();
+            user.setName(Character.toString(a));
+            user.setSteamId(i);
+            user.setEmail(Character.toString(a)+"@steam.com");
+            user.setIsAdmin(false);
+            i++;
+            user = userFacade.add(user,"password");
+            users.add(user);
+        }
+        List<GameDTO> games = new ArrayList<>();
+        for (long j = 1;j <=10;j++) {
+            GameDTO game = new GameDTO();
+            game.setName(Long.toString(j));
+            game.setSteamId(j);
+            game = gameFacade.add(game);
+            games.add(game);
+        }
+        List<RecommendationDTO> recs = new ArrayList<>();
+        long id = 1;
+        recs.add(new RecommendationDTO(id, users.get(0), games.get(0), true));
+        id++;
+        recs.add(new RecommendationDTO(id, users.get(0), games.get(1), false));
+        id++;
+        recs.add(new RecommendationDTO(id, users.get(0), games.get(2), true));
+
+        id++;
+        recs.add(new RecommendationDTO(id, users.get(0), games.get(3), true));
+        id++;
+        recs.add(new RecommendationDTO(id, users.get(0), games.get(4), false));
+        id++;
+        recs.add(new RecommendationDTO(id, users.get(0), games.get(5), true));
+        id++;
+        recs.add(new RecommendationDTO(id, users.get(0), games.get(6), false));
+        id++;
+        recs.add(new RecommendationDTO(id, users.get(1), games.get(0), false));
+        id++;
+        recs.add(new RecommendationDTO(id, users.get(1), games.get(2), true));
+        id++;
+        recs.add(new RecommendationDTO(id, users.get(1), games.get(3), false));
+        id++;
+        recs.add(new RecommendationDTO(id, users.get(1),games.get(4), true));
+        id++;
+        recs.add(new RecommendationDTO(id, users.get(1), games.get(5), true));
+        id++;
+        recs.add(new RecommendationDTO(id, users.get(1), games.get(6), false));
+        id++;
+        recs.add(new RecommendationDTO(id, users.get(1), games.get(7), true));
+        id++;
+        recs.add(new RecommendationDTO(id, users.get(2),games.get(0),true));
+        id++;
+        recs.add(new RecommendationDTO(id, users.get(2), games.get(1), true));
+        id++;
+        recs.add(new RecommendationDTO(id, users.get(2), games.get(2), true));
+        id++;
+        recs.add(new RecommendationDTO(id, users.get(3), games.get(0), true));
+        id++;
+        recs.add(new RecommendationDTO(id, users.get(3), games.get(2), false));
+        id++;
+        recs.add(new RecommendationDTO(id, users.get(3), games.get(7), true));
+        id++;
+        recs.add(new RecommendationDTO(id, users.get(3), games.get(8), true));
+        id++;
+        recs.add(new RecommendationDTO(id, users.get(4),games.get(0),false));
+        id++;
+        recs.add(new RecommendationDTO(id, users.get(4), games.get(1), true));
+        id++;
+        recs.add(new RecommendationDTO(id, users.get(4), games.get(2), false));
+        id++;
+        recs.add(new RecommendationDTO(id, users.get(4), games.get(6), true));
+        id++;
+        recs.add(new RecommendationDTO(id, users.get(4), games.get(7), true));
+        id++;
+        recs.add(new RecommendationDTO(id, users.get(5), games.get(0), false));
+        id++;
+        recs.add(new RecommendationDTO(id, users.get(5), games.get(2), true));
+        id++;
+        recs.add(new RecommendationDTO(id, users.get(6), games.get(0), false));
+        id++;
+        recs.add(new RecommendationDTO(id, users.get(6), games.get(3), false));
+        id++;
+        recs.add(new RecommendationDTO(id, users.get(6), games.get(4), false));
+        id++;
+        recs.add(new RecommendationDTO(id, users.get(6), games.get(5), false));
+        id++;
+        recs.add(new RecommendationDTO(id, users.get(7), games.get(3), true));
+        id++;
+        recs.add(new RecommendationDTO(id, users.get(7), games.get(5), true));
+        id++;
+        recs.add(new RecommendationDTO(id, users.get(7), games.get(7), true));
+        id++;
+        recs.add(new RecommendationDTO(id, users.get(8), games.get(1), true));
+        id++;
+        recs.add(new RecommendationDTO(id, users.get(8), games.get(2), false));
+        id++;
+        recs.add(new RecommendationDTO(id, users.get(8), games.get(3), false));
+        id++;
+        recs.add(new RecommendationDTO(id, users.get(8), games.get(4), false));
+        id++;
+        recs.add(new RecommendationDTO(id, users.get(8), games.get(5), false));
+        id++;
+        recs.add(new RecommendationDTO(id, users.get(9), games.get(0), true));
+        id++;
+        recs.add(new RecommendationDTO(id, users.get(9), games.get(1), false));
+        id++;
+        recs.add(new RecommendationDTO(id, users.get(9), games.get(2), true));
+        id++;
+        recs.add(new RecommendationDTO(id, users.get(9), games.get(3), true));
+        id++;
+        recs.add(new RecommendationDTO(id, users.get(9),games.get(6),false));
+        for (RecommendationDTO rec:recs) {
+            recommendationFacade.add(rec);
+//            userFacade.update(rec.getAuthor());
+//            recommendationFacade.update(rec);
+        }
     }
 
     /**
