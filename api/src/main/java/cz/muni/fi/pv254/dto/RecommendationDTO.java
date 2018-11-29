@@ -15,6 +15,14 @@ public class RecommendationDTO {
     private double weightedVoteScore;
     private boolean earlyAccess;
 
+    public RecommendationDTO(Long steamId, UserDTO author, GameDTO game, boolean votedUp){
+        this.setGame(game);
+        this.setAuthor(author);
+        this.setSteamId(steamId);
+        this.setVotedUp(votedUp);
+    }
+    public RecommendationDTO(){}
+
     public Long getId() {
         return id;
     }
