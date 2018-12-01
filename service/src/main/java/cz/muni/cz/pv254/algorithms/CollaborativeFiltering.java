@@ -5,6 +5,7 @@
  */
 package cz.muni.cz.pv254.algorithms;
 
+import com.google.common.collect.Lists;
 import cz.muni.fi.pv254.dto.GameDTO;
 import cz.muni.fi.pv254.dto.RecommendationDTO;
 import cz.muni.fi.pv254.dto.UserDTO;
@@ -17,6 +18,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.*;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 
 
@@ -250,14 +252,14 @@ public class CollaborativeFiltering {
         return sum / (double)recommendations.size();
     }
     
-    private static Map pearsonCoeficientMatrix(UserDTO user, List<UserDTO> similarUsers, 
-            List<GameDTO> recommendedGames, Set<RecommendationDTO> recommendations) {
+    private static Map pearsonCoeficientMatrix(UserDTO user, List<GameDTO> recommendedGames, 
+            Set<RecommendationDTO> recommendations, List<UserDTO> sortedUsers) {
         
-        Map coeficients = new HashMap(); 
+        Map<UserDTO, Double> coeficients = new HashMap(); 
         
         double userMean = calculateMean(recommendations);        
         
-        for(UserDTO similarUser : similarUsers) {
+        for(UserDTO similarUser : sortedUsers) {
             double similarUserMean = calculateMean(similarUser.getRecommendations());
             double numerator = 0;
             double denominator_1 = 0;  
@@ -277,7 +279,10 @@ public class CollaborativeFiltering {
                 }
 //                RecommendationDTO userRecommendation = recommendationFacade.findByAuthorAndGame(user, game);      
 //                RecommendationDTO similarUserRecommendation = recommendationFacade.findByAuthorAndGame(similarUser, game);
-                
+                if(similarUserRecommendation == null) {
+                    continue;
+                }                
+
                 int userRecValue = 0;
                 if(userRecommendation.isVotedUp()) {
                     userRecValue = 1;
@@ -300,7 +305,99 @@ public class CollaborativeFiltering {
         return coeficients;
     }
     
-    public static void nearestNeighbor(long steamId) {
+    private static GameDTO gameWithLowestRecs(List<GameDTO> games) {
+        int min = Integer.MAX_VALUE;
+        GameDTO minimalRecsGame = null;
+        
+        for(GameDTO game : games) {
+            int size = game.getRecommendations().size();           
+            if(size < min) {
+                min = size;
+                minimalRecsGame = game;
+            }
+        }
+        
+        return minimalRecsGame;
+    }
+    
+    private static List<UserDTO> similarUsers(List<GameDTO> games, List<UserDTO> allUsers) {
+        List<UserDTO> similarUsers = new ArrayList<>();
+        
+        for(UserDTO anyUser : allUsers) {      
+            Set<RecommendationDTO> anyUserRecs = anyUser.getRecommendations();            
+            List<GameDTO> anyUserGames = new ArrayList<>();
+            
+            for (RecommendationDTO rec : anyUserRecs) {
+                anyUserGames.add(rec.getGame());
+            } 
+            
+//            List<GameDTO> anyUserGames = gameFacade.findRecommendedByUser(anyUser);
+            if(anyUserGames.containsAll(games)) {                
+                similarUsers.add(anyUser);
+            }            
+        }
+        return similarUsers;
+    }
+    
+    private static Set<GameDTO> similarUsersGames(Map<UserDTO, Double> coeficients) {
+        Set<GameDTO> games = new HashSet<>();
+        
+        for(UserDTO similarUser: coeficients.keySet()) {
+	    Set<RecommendationDTO> recs = similarUser.getRecommendations();            
+            
+            for(RecommendationDTO rec : recs) {
+                games.add(rec.getGame());
+            }
+        }
+        return games;
+    }
+    
+    private static Map gamePredictions(Map<UserDTO, Double> coeficients, UserDTO user,
+            List<GameDTO> userGames, Set<RecommendationDTO> userRecs) {
+        
+        double userMean = calculateMean(userRecs);    
+        Set<GameDTO> similarUsersGames = similarUsersGames(coeficients);
+        similarUsersGames.removeAll(userGames);
+        
+        Map<GameDTO, Double> gamePredictions = new HashMap<>();
+        
+        for(GameDTO game : similarUsersGames) {
+            double numerator = 0;
+            double denominator = 0;
+            
+            for(UserDTO similarUser: coeficients.keySet()) {
+                double coeficient = coeficients.get(similarUser);
+                double similarUserMean = calculateMean(similarUser.getRecommendations());                                
+               
+                RecommendationDTO similarUserRecommendation = null;
+                for(RecommendationDTO recommendation : similarUser.getRecommendations()) {
+                    if(recommendation.getAuthor().equals(similarUser) && recommendation.getGame().equals(game)) {
+                        similarUserRecommendation = recommendation;
+                    }              
+                    
+                }
+                
+//                similarUserRecommendation = recommendationFacade.findByAuthorAndGame(similarUser, game);
+                if(similarUserRecommendation == null) {
+                    continue;
+                }
+                
+                int rating = 0;
+                if(similarUserRecommendation.isVotedUp()) {
+                    rating = 1;
+                }
+                
+                numerator += coeficient*(rating - similarUserMean);
+                denominator += coeficient;
+                
+            }            
+            double prediction = userMean + (numerator/denominator);
+            gamePredictions.put(game, prediction);
+        }        
+        return gamePredictions;
+    }
+    
+    public static void nearestNeighborSubset(long steamId) {
 //        Use commented declarations to work with database
 
         UserDTO user = null;
@@ -310,8 +407,7 @@ public class CollaborativeFiltering {
                 break;
             }
         }
-//        UserDTO user = userFacade.findBySteamId(steamId);
-        System.out.print("Testing user: " + user.getName() + "\n\n");
+//        UserDTO user = userFacade.findBySteamId(steamId);        
         Set<RecommendationDTO> recsByUser = user.getRecommendations();          
         List<GameDTO> gamesRatedByUser = new ArrayList<>();
           
@@ -323,7 +419,58 @@ public class CollaborativeFiltering {
         List<UserDTO> allUsers = users;
 //        List<UserDTO> allUsers = userFacade.findAll();
         allUsers.remove(user);
-        List<UserDTO> usersCommentingSameGames = new ArrayList<>();
+        
+        List<UserDTO> similarUsers = similarUsers(gamesRatedByUser, allUsers);        
+        
+        while(similarUsers.size() < 1) {           
+            gamesRatedByUser.remove(gameWithLowestRecs(gamesRatedByUser));
+            similarUsers = similarUsers(gamesRatedByUser, allUsers);
+        }       
+        
+        Map<UserDTO, Double> coeficients = pearsonCoeficientMatrix(user, gamesRatedByUser, 
+                recsByUser, similarUsers);
+        
+        for(Object key: coeficients.keySet()) {
+	    System.out.println(key + " : " + coeficients.get(key));           
+	    System.out.println();
+        }
+        
+        Map<GameDTO, Double> gamePredictions = gamePredictions(coeficients, user, gamesRatedByUser, recsByUser);
+        List<GameDTO> sortedPredictions = (gamePredictions.entrySet().stream().sorted(Map.Entry.comparingByValue())
+                .map(Map.Entry::getKey).collect(Collectors.toList()));
+        sortedPredictions = Lists.reverse(sortedPredictions);   
+        System.out.println(sortedPredictions);                
+        
+        for(Object key: gamePredictions.keySet()) {
+	    System.out.println(key + " : " + gamePredictions.get(key));           
+	    System.out.println();
+        }
+    }
+    
+    public static void nearestNeighborIntersection(long steamId) {
+//        Use commented declarations to work with database
+
+        UserDTO user = null;
+        for(UserDTO identicalUser : users) {
+            if(identicalUser.getSteamId() == steamId) {
+                user = identicalUser;
+                break;
+            }
+        }
+//        UserDTO user = userFacade.findBySteamId(steamId);        
+        Set<RecommendationDTO> recsByUser = user.getRecommendations();          
+        List<GameDTO> gamesRatedByUser = new ArrayList<>();
+          
+        for(RecommendationDTO rec : recsByUser) {
+            gamesRatedByUser.add(rec.getGame());
+        }        
+//        List<GameDTO> gamesRatedByUser = gameFacade.findRecommendedByUser(user);        
+
+        List<UserDTO> allUsers = users;
+//        List<UserDTO> allUsers = userFacade.findAll();
+        allUsers.remove(user);
+        
+        Map<UserDTO, Integer> similarUsers = new HashMap();        
         
         for(UserDTO anyUser : allUsers) {      
             Set<RecommendationDTO> anyUserRecs = anyUser.getRecommendations();            
@@ -334,18 +481,34 @@ public class CollaborativeFiltering {
             } 
             
 //            List<GameDTO> anyUserGames = gameFacade.findRecommendedByUser(anyUser);
-            if(anyUserGames.containsAll(gamesRatedByUser)) {
-                usersCommentingSameGames.add(anyUser);
-            }
+            anyUserGames.retainAll(gamesRatedByUser);
+            similarUsers.put(anyUser, anyUserGames.size());            
         }
-                
-        Map coeficients = pearsonCoeficientMatrix(user, usersCommentingSameGames, 
-                gamesRatedByUser, recsByUser);
         
-        for(Object key: coeficients.keySet()) {
-	    System.out.println(key + " : " + coeficients.get(key));           
+        List<UserDTO> sortedUsers = (similarUsers.entrySet().stream().sorted(Map.Entry.comparingByValue())
+                .map(Map.Entry::getKey).collect(Collectors.toList()));
+        sortedUsers = Lists.reverse(sortedUsers);   
+        
+        if(sortedUsers.size() > 5) {
+            sortedUsers = sortedUsers.subList(0, 5);
+        }        
+                
+        Map<UserDTO, Double> coeficients = pearsonCoeficientMatrix(user, gamesRatedByUser, 
+                recsByUser, sortedUsers);
+        
+        Map<GameDTO, Double> gamePredictions = gamePredictions(coeficients, user, gamesRatedByUser, recsByUser);
+        List<GameDTO> sortedPredictions = (gamePredictions.entrySet().stream().sorted(Map.Entry.comparingByValue())
+                .map(Map.Entry::getKey).collect(Collectors.toList()));
+        sortedPredictions = Lists.reverse(sortedPredictions);   
+        System.out.println(sortedPredictions);                
+        
+        for(Object key: gamePredictions.keySet()) {
+	    System.out.println(key + " : " + gamePredictions.get(key));           
 	    System.out.println();
-        }
+        }           
+        
+        
     }
+    
     
 }
