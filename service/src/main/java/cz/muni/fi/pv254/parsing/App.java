@@ -472,6 +472,7 @@ public class App
     /**https://www.linkedin.com/pulse/content-based-recommender-engine-under-hood-venkat-raman
      https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=6838200
      */
+
     private List<GameDTO> recommendationByWord(GameDTO game,List<GameDTO> listGame){
         Set<GenreDTO> genres;
         for (GameDTO ga : listGame) {
