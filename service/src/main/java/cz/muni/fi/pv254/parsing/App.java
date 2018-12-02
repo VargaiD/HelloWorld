@@ -1,10 +1,8 @@
 package cz.muni.fi.pv254.parsing;
 
-import cz.muni.fi.pv254.dto.GameDTO;
-import cz.muni.fi.pv254.dto.GenreDTO;
-import cz.muni.fi.pv254.dto.RecommendationDTO;
-import cz.muni.fi.pv254.dto.UserDTO;
+import cz.muni.fi.pv254.dto.*;
 import cz.muni.fi.pv254.entity.Game;
+import cz.muni.fi.pv254.entity.Genre;
 import cz.muni.fi.pv254.facade.GameFacade;
 import cz.muni.fi.pv254.facade.GenreFacade;
 import cz.muni.fi.pv254.facade.RecommendationFacade;
@@ -24,6 +22,12 @@ import java.io.InputStreamReader;
 import java.net.*;
 import java.nio.file.Paths;
 import java.util.*;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import static java.util.stream.Collectors.toMap;
 
 /**
  * This is class for downloading data from Steam.
@@ -385,6 +389,134 @@ public class App
         }
         return out;
     }
+    /**
+    * Parse description
+    */
+    private  List<WordDTO> parseDescrpition(GameDTO game) {
+        WordDTO wordDTO= new WordDTO();
+        JSONObject obj= new JSONObject();
+        List<WordDTO> listWords = new ArrayList<>();
+        wordDTO.setGame(game);
+        Map<String, Integer> words = new HashMap<>();
+        String longDescription= obj.getString(downloadLongDescription(game.getId()));
+        longDescription = stripHtmlRegex(longDescription);
+        longDescription = stripTagsCharArray(longDescription);
+        //document.getElementsByTagName("H1")[0].removeAttribute("class");
+        longDescription=longDescription.replaceAll("&.*?;" , "");
+        longDescription=longDescription.replaceAll("[,?:!.]", "");
+        longDescription=longDescription.toUpperCase();
+
+        String a[] = longDescription.split(" ");
+        for (String str : a) {
+            if(str.length()>2){
+                if (words.containsKey(str)) {
+                    words.put(str, 1 + words.get(str));
+                } else {
+                    words.put(str, 1);
+                }
+            }
+        }
+
+        words = words
+                .entrySet()
+                .stream()
+                .sorted(Collections.reverseOrder(Map.Entry.comparingByValue()))
+                .collect(
+                        toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e2,
+                                LinkedHashMap::new));
+
+
+
+        for (Map.Entry me : words.entrySet()) {
+           // System.out.println("Key: "+me.getKey() + " & Value: " + me.getValue());
+            wordDTO.setCount((Integer) me.getValue());
+            wordDTO.setWord((String) me.getKey());
+            listWords.add(wordDTO);
+
+
+        }
+        return listWords;
+    }
+
+    public String stripHtmlRegex(String source) {
+        // Replace all tag characters with an empty string.
+        return source.replaceAll("<.*?>", "");
+    }
+
+    public String stripTagsCharArray(String source) {
+        // Create char array to store our result.
+        char[] array = new char[source.length()];
+        int arrayIndex = 0;
+        boolean inside = false;
+
+        // Loop over characters and append when not inside a tag.
+        for (int i = 0; i < source.length(); i++) {
+            char let = source.charAt(i);
+            if (let == '<') {
+                inside = true;
+                continue;
+            }
+            if (let == '>') {
+                inside = false;
+                continue;
+            }
+            if (!inside) {
+                array[arrayIndex] = let;
+                arrayIndex++;
+            }
+        }
+        // ... Return written data.
+        return new String(array, 0, arrayIndex);
+    }
+
+    /**https://www.linkedin.com/pulse/content-based-recommender-engine-under-hood-venkat-raman
+     https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=6838200
+     */
+    private List<GameDTO> recommendationByWord(GameDTO game,List<GameDTO> listGame){
+        Set<GenreDTO> genres;
+        for (GameDTO ga : listGame) {
+            genres=ga.getGenres();
+        }
+    }
+
+    private List<GameDTO> recommendationByGenre(GameDTO game,List<GameDTO> listGame){
+        List<GameDTO>  recommendationGame = new ArrayList<>();
+              Map<Long, Integer> mapIntersection= intersectionGenre(listGame, game);
+
+              //get only first 5 reccomendation
+
+        return recommendationGame;
+    }
+
+    /**
+     *intersection on based genre
+     * @param listGame
+     * @param game
+     * @return game and a common number of the same genres
+     */
+    public Map<Long, Integer> intersectionGenre(List<GameDTO> listGame, GameDTO game){
+        Map<Long, Integer> countIntersection = new HashMap<>();
+        Set intersectGame = new HashSet();
+        for (GameDTO ga : listGame) {
+           if(ga.getGenres().retainAll(game.getGenres());
+            {
+                intersectGame.add(ga.getGenres().retainAll(game.getGenres()));
+                countIntersection.put(ga.getId(),intersectGame.size());
+            }
+            intersectGame.clear();
+
+        }
+        countIntersection = countIntersection
+                .entrySet()
+                .stream()
+                .sorted(Collections.reverseOrder(Map.Entry.comparingByValue()))
+                .collect(
+                        toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e2,
+                                LinkedHashMap::new));
+
+        return countIntersection;
+    }
+
 
     /**
      * download and store author info
