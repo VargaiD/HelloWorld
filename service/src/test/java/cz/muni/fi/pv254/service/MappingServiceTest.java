@@ -19,9 +19,6 @@
 //import org.testng.annotations.BeforeMethod;
 //import org.testng.annotations.Test;
 //
-///**
-// * @author Natália Jurdová 475981
-// */
 //@ContextConfiguration(classes = ServiceConfiguration.class)
 //public class MappingServiceTest extends AbstractTestNGSpringContextTests {
 //    @Autowired

@@ -334,7 +334,7 @@ public class App
 
     /**
      * Loads games from top100.csv file
-     * @return true if successfull
+     * @return true if successful
      */
     public boolean loadTop100() {
         System.out.println(System.getProperty("user.dir"));

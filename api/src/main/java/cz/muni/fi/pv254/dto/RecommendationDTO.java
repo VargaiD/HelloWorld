@@ -96,8 +96,8 @@ public class RecommendationDTO {
                 votedUp == that.votedUp &&
                 Double.compare(that.weightedVoteScore, weightedVoteScore) == 0 &&
                 earlyAccess == that.earlyAccess &&
-//                Objects.equals(author, that.author) &&
-//                Objects.equals(game, that.game) &&
+                Objects.equals(author.getId(), that.author.getId()) &&
+                Objects.equals(game.getId(), that.game.getId()) &&
                 Objects.equals(votesUp, that.votesUp);
     }
 

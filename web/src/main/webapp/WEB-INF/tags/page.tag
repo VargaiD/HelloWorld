@@ -1,6 +1,3 @@
-<%--
-    Author : Stefan Matta
---%>
 <%@ tag pageEncoding="utf-8" dynamic-attributes="dynattrs" trimDirectiveWhitespaces="true" %>
 <%@ attribute name="title" required="false" %>
 <%@ attribute name="activeNavbarItem" required="false" %>
@@ -41,7 +38,9 @@
 
           <!--user view-->
           <c:if test="${authUser != null && !authUser.isAdmin}">
-       </c:if>
+              <li class="${activeNavbarItem == 'Rate' ? 'active' : ''}"><a href="${pageContext.request.contextPath}/game/rate/0">Rate Games</a></li>
+              <li class="${activeNavbarItem == 'Recommend' ? 'active' : ''}"><a href="${pageContext.request.contextPath}/game/recommend">Get Recommendation</a></li>
+          </c:if>
         </ul>
         <ul class="nav navbar-nav navbar-right">
 

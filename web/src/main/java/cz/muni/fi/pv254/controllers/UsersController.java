@@ -1,6 +1,5 @@
 package cz.muni.fi.pv254.controllers;
 
-
 import cz.muni.fi.pv254.dto.UserDTO;
 import cz.muni.fi.pv254.facade.UserFacade;
 import org.slf4j.Logger;
@@ -16,9 +15,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
-/**
- * @author Daniel Vargai
- */
 @Controller
 @RequestMapping("/user")
 public class UsersController {
@@ -27,7 +23,6 @@ public class UsersController {
 
     @Autowired
     private UserFacade userFacade;
-
 
     @RequestMapping(value = "/create", method = RequestMethod.GET)
     public String newUser(Model model,

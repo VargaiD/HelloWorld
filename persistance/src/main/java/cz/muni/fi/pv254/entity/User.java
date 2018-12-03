@@ -18,8 +18,6 @@ public class User implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotNull
-    @Column(nullable = false)
     private Long steamId;
 
     private String passwordHash;
@@ -37,7 +35,7 @@ public class User implements Serializable {
     @Column(nullable = false)
     private Boolean isAdmin;
 
-    @OneToMany(mappedBy = "game", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "game", cascade = CascadeType.ALL)
     private Set<Recommendation> recommendations = new HashSet<>();
 
     public User(Long steamId, String passwordHash, String name, String email, Boolean isAdmin) {

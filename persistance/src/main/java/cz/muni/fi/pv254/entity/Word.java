@@ -13,7 +13,7 @@ public class Word {
     private Long id;
 
     @JoinColumn(name="games_id")
-    @ManyToOne(fetch = FetchType.LAZY, cascade=CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.LAZY)
     private Game game;
 
     @NotNull

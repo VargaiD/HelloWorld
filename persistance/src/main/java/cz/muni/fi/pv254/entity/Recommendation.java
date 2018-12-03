@@ -2,13 +2,8 @@ package cz.muni.fi.pv254.entity;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
 import java.util.Objects;
 
-/**
- *
- * @author Šimon Baláž
- */
 @Table(name="recommendations")
 @Entity
 public class Recommendation {
@@ -17,32 +12,26 @@ public class Recommendation {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotNull
-    @Column(nullable = false)
     private Long steamId;
 
     //    @NotNull
 //    @JoinColumn(name="users_id", nullable = false)
     @JoinColumn(name="users_id")
-    @ManyToOne(fetch = FetchType.LAZY, cascade=CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.LAZY)
     private User author;
 
     //    @NotNull
 //    @JoinColumn(name="games_id", nullable = false)
     @JoinColumn(name="games_id")
-    @ManyToOne(fetch = FetchType.LAZY, cascade=CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.LAZY)
     private Game game;
 
     @NotNull
     @Column(nullable = false)
     private boolean votedUp;
 
-//    @NotNull
-//    @Column(nullable = false)
     private Long votesUp;
 
-//    @NotNull
-//    @Column(nullable = false)
     private double weightedVoteScore;
 
     @Column
@@ -132,6 +121,8 @@ public class Recommendation {
         if (o == null || getClass() != o.getClass()) return false;
         Recommendation that = (Recommendation) o;
         return steamId == that.steamId &&
+                game.getId() == that.game.getId() &&
+                author.getId() == that.author.getId() &&
                 votedUp == that.votedUp &&
                 Double.compare(that.weightedVoteScore, weightedVoteScore) == 0 &&
                 earlyAccess == that.earlyAccess &&

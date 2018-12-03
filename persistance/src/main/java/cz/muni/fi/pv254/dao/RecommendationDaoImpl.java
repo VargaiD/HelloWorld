@@ -16,10 +16,6 @@ import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 
-/**
- *
- * @author Šimon Baláž
- */
 @Transactional
 @Repository
 public class RecommendationDaoImpl implements RecommendationDao {
