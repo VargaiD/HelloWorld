@@ -14,8 +14,8 @@ import java.util.*;
 import static java.util.stream.Collectors.toMap;
 
 @Component
-public class CbAlgorithm {
-    public class CBentityAB {
+public class contentBasedAlgorithm {
+    public class contentBasedEntityAB {
         private GameDTO gameA;
         private GameDTO gameB;
         private double scoreAB;
@@ -97,11 +97,11 @@ public class CbAlgorithm {
                         }
                     }
                 }
-                CBentityAB cBentityAB=new CBentityAB();
+                contentBasedEntityAB cBentityAB=new contentBasedEntityAB();
                 cBentityAB.setGameA(Votegame);
                 //nehodnotene
                 cBentityAB.setGameB(NotVotegame);
-                cBentityAB.setScoreAB(ScoreSumAB/(Math.sqrt(scoreA(Votegame)*scoreA(NotVotegame))*Math.sqrt(scoreA(Votegame)*scoreA(Votegame))));
+                cBentityAB.setScoreAB(ScoreSumAB/(scoreA(Votegame)*scoreA(NotVotegame)));
                 abScore.put(cBentityAB.getGameA().getId()+","+cBentityAB.getGameB().getId(), cBentityAB.getScoreAB());
 
             }
@@ -123,6 +123,7 @@ public class CbAlgorithm {
                 GameDTO game = gameFacade.findById(Long.parseLong(a[1]));
                 bestScore.add(game);
             }
+            else break;
         }
 
 
@@ -134,9 +135,9 @@ public class CbAlgorithm {
         Double ScoreSumA=0D;
         Set<WordDTO> gameWords= game.getWords();
         for(WordDTO gam: gameWords){
-           ScoreSumA=ScoreSumA+gam.getCount();
+           ScoreSumA=ScoreSumA+(gam.getCount()*gam.getCount());
         }
-        return ScoreSumA;
+        return Math.sqrt(ScoreSumA);
     }
 
     private Set<GameDTO> recommendationByTag(UserDTO userDTO){
@@ -158,9 +159,8 @@ public class CbAlgorithm {
         }
         //hodnotena hra
         for(GameDTO Votegame: VoteUserGames) {
-            Double ScoreSumAB = 0D;
             for (GameDTO NotVotegame : notRecUserGames) {
-                CBentityAB cBentityAB=new CBentityAB();
+                contentBasedEntityAB cBentityAB=new contentBasedEntityAB();
                 cBentityAB.setGameA(Votegame);
                 //nehodnotene
                 cBentityAB.setGameB(NotVotegame);
@@ -188,6 +188,7 @@ public class CbAlgorithm {
                 GameDTO game = gameFacade.findById(Long.parseLong(a[1]));
                 bestScore.add(game);
             }
+            else break;
         }
 
 
