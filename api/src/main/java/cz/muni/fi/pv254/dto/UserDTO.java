@@ -14,7 +14,6 @@ public class UserDTO {
     private Boolean isAdmin;
     private Long steamId;
     private Set<RecommendationDTO> recommendations = new HashSet<>();
-    private Set<GameDTO> games = new HashSet<>();
 
     public Set<RecommendationDTO> getRecommendations() {
         return recommendations;
@@ -22,14 +21,6 @@ public class UserDTO {
 
     public void setRecommendations(Set<RecommendationDTO> recommendations) {
         this.recommendations = recommendations;
-    }
-
-    public Set<GameDTO> getGames() {
-        return games;
-    }
-
-    public void setGames(Set<GameDTO> games) {
-        this.games = games;
     }
 
     public Long getSteamId() {

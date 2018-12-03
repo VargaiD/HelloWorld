@@ -10,10 +10,6 @@ import cz.muni.fi.pv254.entity.User;
 
 import java.util.List;
 
-/**
- *
- * @author Šimon Baláž
- */
 public interface GameDao {
     
     /**

@@ -8,10 +8,6 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
-/**
- *
- * @author Šimon Baláž
- */
 @Table(name= "games")
 @Entity
 public class Game {

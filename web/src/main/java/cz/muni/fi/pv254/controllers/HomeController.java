@@ -1,7 +1,5 @@
 package cz.muni.fi.pv254.controllers;
 
-import cz.muni.fi.pv254.facade.GameFacade;
-import cz.muni.fi.pv254.facade.UserFacade;
 import cz.muni.fi.pv254.parsing.App;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,13 +8,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import sun.swing.BakedArrayList;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 @Controller
 public class HomeController {
@@ -25,12 +19,6 @@ public class HomeController {
 
     @Autowired
     private App app;
-
-    @Autowired
-    private GameFacade gameFacade;
-
-    @Autowired
-    private UserFacade userFacade;
 
     @RequestMapping(value = "/", method = RequestMethod.GET)
     public String Home(Model model,
@@ -44,6 +32,9 @@ public class HomeController {
     public String Download(){
         app.setDebug(2);
         app.setOffsetDiff(100);
+
+        app.loadTop100();
+        app.downloadAllGamesOnly();
 //        app.addGameId(530320L);
 //        app.addGameId(896460L);
 //        app.addGameId(837330L);
@@ -62,8 +53,8 @@ public class HomeController {
 //        app.loadTop100();
 //        app.inteligentParse(787860);
 //        app.inteligentParse(360430);
-        app.createTestDataFoCF();
-        System.out.println(gameFacade.findRecommendedByUser(userFacade.findById(4L)));
+//        app.createTestDataFoCF();
+//        System.out.println(gameFacade.findRecommendedByUser(userFacade.findById(4L)));
 //        app.downloadAllGamesOnly();
 //        app.inteligentParseAllGanes();
 //        app.loadTop100();

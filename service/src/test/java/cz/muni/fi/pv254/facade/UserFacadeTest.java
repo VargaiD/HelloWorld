@@ -22,9 +22,6 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
 
-/**
- * @author Daniel Vargai 433455@mail.muni.cz
- */
 @ContextConfiguration(classes = ServiceConfiguration.class)
 @Transactional
 public class UserFacadeTest extends AbstractTestNGSpringContextTests {
