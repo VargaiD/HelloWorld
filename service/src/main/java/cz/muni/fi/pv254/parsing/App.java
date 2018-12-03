@@ -1,10 +1,8 @@
 package cz.muni.fi.pv254.parsing;
 
-import cz.muni.fi.pv254.dto.GameDTO;
-import cz.muni.fi.pv254.dto.GenreDTO;
-import cz.muni.fi.pv254.dto.RecommendationDTO;
-import cz.muni.fi.pv254.dto.UserDTO;
+import cz.muni.fi.pv254.dto.*;
 import cz.muni.fi.pv254.entity.Game;
+import cz.muni.fi.pv254.entity.Genre;
 import cz.muni.fi.pv254.facade.GameFacade;
 import cz.muni.fi.pv254.facade.GenreFacade;
 import cz.muni.fi.pv254.facade.RecommendationFacade;
@@ -24,6 +22,12 @@ import java.io.InputStreamReader;
 import java.net.*;
 import java.nio.file.Paths;
 import java.util.*;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import static java.util.stream.Collectors.toMap;
 
 /**
  * This is class for downloading data from Steam.
@@ -395,6 +399,97 @@ public class App
         }
         return out;
     }
+    /**
+    * Parse description
+    */
+
+
+    public void parseDescrpition(Long id) {
+
+
+        GameDTO game= gameFacade.findBySteamId(id);
+        int TotalSum=0;
+        Set<WordDTO> listWords = new HashSet<>();
+        Map<String, Integer> words = new HashMap<>();
+        ArrayList<String> deleteWord = new ArrayList();
+        deleteWord.add("ARE");
+        deleteWord.add("NOT");
+        deleteWord.add("AND");
+        String longDescription= downloadLongDescription(game.getSteamId());
+        longDescription = stripHtmlRegex(longDescription);
+        longDescription = stripTagsCharArray(longDescription);
+        //document.getElementsByTagName("H1")[0].removeAttribute("class");
+        longDescription=longDescription.replaceAll("&.*?;" , "");
+        longDescription=longDescription.replaceAll("[,?:!.]", "");
+        longDescription=longDescription.toUpperCase();
+        for(String delWord : deleteWord ) {
+            longDescription = longDescription.replaceAll(delWord, "");
+        }
+        String a[] = longDescription.split(" ");
+        //counting occurance word
+        for (String str : a) {
+            System.out.println(str);
+            if(str.length()>2){
+                if (words.containsKey(str)) {
+                    words.put(str, 1 + words.get(str));
+                } else {
+                    words.put(str, 1);
+                }
+            }
+        }
+        //sort by count word
+        words = words
+                .entrySet()
+                .stream()
+                .sorted(Collections.reverseOrder(Map.Entry.comparingByValue()))
+                .collect(
+                        toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e2,
+                                LinkedHashMap::new));
+        TotalSum=a.length;
+        for ( Map.Entry<String, Integer> me : words.entrySet()) {
+            WordDTO wDTO= new WordDTO();
+            wDTO.setGame(game);
+            wDTO.setCount((Double.parseDouble(me.getValue().toString()))/TotalSum);
+            wDTO.setWord(me.getKey());
+            listWords.add(wDTO);
+        }
+        game.setWords(listWords);
+        gameFacade.update(game);
+
+
+    }
+
+    public String stripHtmlRegex(String source) {
+        // Replace all tag characters with an empty string.
+        return source.replaceAll("<.*?>", "");
+    }
+
+    public String stripTagsCharArray(String source) {
+        // Create char array to store our result.
+        char[] array = new char[source.length()];
+        int arrayIndex = 0;
+        boolean inside = false;
+
+        // Loop over characters and append when not inside a tag.
+        for (int i = 0; i < source.length(); i++) {
+            char let = source.charAt(i);
+            if (let == '<') {
+                inside = true;
+                continue;
+            }
+            if (let == '>') {
+                inside = false;
+                continue;
+            }
+            if (!inside) {
+                array[arrayIndex] = let;
+                arrayIndex++;
+            }
+        }
+        // ... Return written data.
+        return new String(array, 0, arrayIndex);
+    }
+
 
     /**
      * download and store author info
