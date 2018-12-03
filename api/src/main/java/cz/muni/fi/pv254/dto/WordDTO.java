@@ -5,13 +5,13 @@ import java.util.Objects;
 public class WordDTO {
     private Long id;
     private GameDTO game;
-    private int count;
+    private double count;
     private String word;
 
     public WordDTO() {
     }
 
-    public WordDTO(GameDTO game, int count, String word) {
+    public WordDTO(GameDTO game, double count, String word) {
         this.game = game;
         this.count = count;
         this.word = word;
@@ -33,11 +33,11 @@ public class WordDTO {
         this.game = game;
     }
 
-    public int getCount() {
+    public double getCount() {
         return count;
     }
 
-    public void setCount(int count) {
+    public void setCount(double count) {
         this.count = count;
     }
 

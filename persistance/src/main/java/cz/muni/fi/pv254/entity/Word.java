@@ -18,7 +18,7 @@ public class Word {
 
     @NotNull
     @Column(nullable = false)
-    private int count;
+    private double count;
 
     @NotNull
     @Column(nullable = false)
@@ -40,11 +40,11 @@ public class Word {
         this.game = game;
     }
 
-    public int getCount() {
+    public double getCount() {
         return count;
     }
 
-    public void setCount(int count) {
+    public void setCount(double count) {
         this.count = count;
     }
 

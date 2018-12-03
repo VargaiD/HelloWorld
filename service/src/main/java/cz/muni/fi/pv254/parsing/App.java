@@ -392,22 +392,33 @@ public class App
     /**
     * Parse description
     */
-    private  List<WordDTO> parseDescrpition(GameDTO game) {
-        WordDTO wordDTO= new WordDTO();
-        JSONObject obj= new JSONObject();
-        List<WordDTO> listWords = new ArrayList<>();
-        wordDTO.setGame(game);
+
+
+    public void parseDescrpition(Long id) {
+
+
+        GameDTO game= gameFacade.findBySteamId(id);
+        int TotalSum=0;
+        Set<WordDTO> listWords = new HashSet<>();
         Map<String, Integer> words = new HashMap<>();
-        String longDescription= obj.getString(downloadLongDescription(game.getId()));
+        ArrayList<String> deleteWord = new ArrayList();
+        deleteWord.add("ARE");
+        deleteWord.add("NOT");
+        deleteWord.add("AND");
+        String longDescription= downloadLongDescription(game.getSteamId());
         longDescription = stripHtmlRegex(longDescription);
         longDescription = stripTagsCharArray(longDescription);
         //document.getElementsByTagName("H1")[0].removeAttribute("class");
         longDescription=longDescription.replaceAll("&.*?;" , "");
         longDescription=longDescription.replaceAll("[,?:!.]", "");
         longDescription=longDescription.toUpperCase();
-
+        for(String delWord : deleteWord ) {
+            longDescription = longDescription.replaceAll(delWord, "");
+        }
         String a[] = longDescription.split(" ");
+        //counting occurance word
         for (String str : a) {
+            System.out.println(str);
             if(str.length()>2){
                 if (words.containsKey(str)) {
                     words.put(str, 1 + words.get(str));
@@ -416,7 +427,7 @@ public class App
                 }
             }
         }
-
+        //sort by count word
         words = words
                 .entrySet()
                 .stream()
@@ -424,18 +435,18 @@ public class App
                 .collect(
                         toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e2,
                                 LinkedHashMap::new));
-
-
-
-        for (Map.Entry me : words.entrySet()) {
-           // System.out.println("Key: "+me.getKey() + " & Value: " + me.getValue());
-            wordDTO.setCount((Integer) me.getValue());
-            wordDTO.setWord((String) me.getKey());
-            listWords.add(wordDTO);
-
-
+        TotalSum=a.length;
+        for ( Map.Entry<String, Integer> me : words.entrySet()) {
+            WordDTO wDTO= new WordDTO();
+            wDTO.setGame(game);
+            wDTO.setCount((Double.parseDouble(me.getValue().toString()))/TotalSum);
+            wDTO.setWord(me.getKey());
+            listWords.add(wDTO);
         }
-        return listWords;
+        game.setWords(listWords);
+        gameFacade.update(game);
+
+
     }
 
     public String stripHtmlRegex(String source) {
@@ -467,55 +478,6 @@ public class App
         }
         // ... Return written data.
         return new String(array, 0, arrayIndex);
-    }
-
-    /**https://www.linkedin.com/pulse/content-based-recommender-engine-under-hood-venkat-raman
-     https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=6838200
-     */
-
-    private List<GameDTO> recommendationByWord(GameDTO game,List<GameDTO> listGame){
-        Set<GenreDTO> genres;
-        for (GameDTO ga : listGame) {
-            genres=ga.getGenres();
-        }
-    }
-
-    private List<GameDTO> recommendationByGenre(GameDTO game,List<GameDTO> listGame){
-        List<GameDTO>  recommendationGame = new ArrayList<>();
-              Map<Long, Integer> mapIntersection= intersectionGenre(listGame, game);
-
-              //get only first 5 reccomendation
-
-        return recommendationGame;
-    }
-
-    /**
-     *intersection on based genre
-     * @param listGame
-     * @param game
-     * @return game and a common number of the same genres
-     */
-    public Map<Long, Integer> intersectionGenre(List<GameDTO> listGame, GameDTO game){
-        Map<Long, Integer> countIntersection = new HashMap<>();
-        Set intersectGame = new HashSet();
-        for (GameDTO ga : listGame) {
-           if(ga.getGenres().retainAll(game.getGenres());
-            {
-                intersectGame.add(ga.getGenres().retainAll(game.getGenres()));
-                countIntersection.put(ga.getId(),intersectGame.size());
-            }
-            intersectGame.clear();
-
-        }
-        countIntersection = countIntersection
-                .entrySet()
-                .stream()
-                .sorted(Collections.reverseOrder(Map.Entry.comparingByValue()))
-                .collect(
-                        toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e2,
-                                LinkedHashMap::new));
-
-        return countIntersection;
     }
 
 
