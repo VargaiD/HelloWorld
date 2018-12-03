@@ -299,8 +299,67 @@ public class CollaborativeFiltering {
             }             
             double coeficient = numerator / (Math.sqrt(denominator_1) * Math.sqrt(denominator_2));
             
-            coeficients.put(similarUser, coeficient);
+            if(coeficient > 0 || coeficient < 0) {
+                coeficients.put(similarUser, coeficient);
+            }
         }  
+        
+        return coeficients;
+    }
+    
+    private static Map diceCoeficient(UserDTO user, List<GameDTO> recommendedGames, 
+            Set<RecommendationDTO> recommendations, List<UserDTO> sortedUsers) {
+        
+        Map<UserDTO, Double> coeficients = new HashMap(); 
+        
+        for(UserDTO similarUser: sortedUsers) {
+            List<GameDTO> gamesBySimilarUser = new ArrayList<>(); 
+            Set<RecommendationDTO> recsBySimilarUser = similarUser.getRecommendations();
+            
+            for(RecommendationDTO rec : recsBySimilarUser) {
+                gamesBySimilarUser.add(rec.getGame());
+            }    
+            
+//            Probably less effective than the one above
+//            List<GameDTO> gamesBySimilarUser = gameFacade.findRecommendedByUser(similarUser); 
+            Set<GameDTO> userVector = new HashSet<>();
+            userVector.addAll(recommendedGames);
+            userVector.addAll(gamesBySimilarUser);
+        
+            double numerator = 0;
+            for(GameDTO game: userVector) {
+                RecommendationDTO userRecommendation = null;
+                RecommendationDTO similarUserRecommendation = null;
+                for(RecommendationDTO recommendation : recs) {
+                    if(recommendation.getAuthor().equals(similarUser) && recommendation.getGame().equals(game)) {
+                        similarUserRecommendation = recommendation;
+                    }
+                    
+                    if(recommendation.getAuthor().equals(user) && recommendation.getGame().equals(game)) {
+                        userRecommendation = recommendation;
+                    }
+                }
+//                RecommendationDTO userRecommendation = recommendationFacade.findByAuthorAndGame(user, game);      
+//                RecommendationDTO similarUserRecommendation = recommendationFacade.findByAuthorAndGame(similarUser, game);       
+                 
+                if(userRecommendation != null && similarUserRecommendation != null) {
+                    if(userRecommendation.isVotedUp() && similarUserRecommendation.isVotedUp()) {
+                        numerator += 1;
+                    }
+                    if(userRecommendation.isVotedUp() && similarUserRecommendation.isVotedUp()) {
+                        numerator += 1;
+                    }
+                }
+            }
+            
+            double coeficient = (2*numerator) / (2*userVector.size());
+            coeficient = (2*coeficient) - 1;
+            
+            if(coeficient > 0 || coeficient < 0) {                
+                coeficients.put(similarUser, coeficient);
+            }
+            
+        }
         
         return coeficients;
     }
@@ -385,19 +444,18 @@ public class CollaborativeFiltering {
                 int rating = 0;
                 if(similarUserRecommendation.isVotedUp()) {
                     rating = 1;
-                }
-                
+                }                
                 numerator += coeficient*(rating - similarUserMean);
-                denominator += coeficient;
-                
-            }            
+                denominator += coeficient;                
+            }        
+            
             double prediction = userMean + (numerator/denominator);
             gamePredictions.put(game, prediction);
         }        
         return gamePredictions;
     }
     
-    public static void nearestNeighborSubset(long steamId) {
+    public static List<GameDTO> nearestNeighborSubset(long steamId, boolean pearson) {
 //        Use commented declarations to work with database
 
         UserDTO user = null;
@@ -414,6 +472,7 @@ public class CollaborativeFiltering {
         for(RecommendationDTO rec : recsByUser) {
             gamesRatedByUser.add(rec.getGame());
         }        
+//        Probably less effective than the one above
 //        List<GameDTO> gamesRatedByUser = gameFacade.findRecommendedByUser(user);        
 
         List<UserDTO> allUsers = users;
@@ -425,29 +484,29 @@ public class CollaborativeFiltering {
         while(similarUsers.size() < 1) {           
             gamesRatedByUser.remove(gameWithLowestRecs(gamesRatedByUser));
             similarUsers = similarUsers(gamesRatedByUser, allUsers);
-        }       
+        }      
         
-        Map<UserDTO, Double> coeficients = pearsonCoeficientMatrix(user, gamesRatedByUser, 
-                recsByUser, similarUsers);
+        if(similarUsers.isEmpty()) {
+            return new ArrayList<GameDTO>();
+        }
         
-        for(Object key: coeficients.keySet()) {
-	    System.out.println(key + " : " + coeficients.get(key));           
-	    System.out.println();
+        Map<UserDTO, Double> coeficients = new HashMap<>();
+        if(pearson) {
+           coeficients = pearsonCoeficientMatrix(user, gamesRatedByUser, recsByUser, similarUsers);
+        } 
+        else {
+            coeficients = diceCoeficient(user, gamesRatedByUser, recsByUser, similarUsers);
         }
         
         Map<GameDTO, Double> gamePredictions = gamePredictions(coeficients, user, gamesRatedByUser, recsByUser);
         List<GameDTO> sortedPredictions = (gamePredictions.entrySet().stream().sorted(Map.Entry.comparingByValue())
-                .map(Map.Entry::getKey).collect(Collectors.toList()));
-        sortedPredictions = Lists.reverse(sortedPredictions);   
-        System.out.println(sortedPredictions);                
+                .map(Map.Entry::getKey).collect(Collectors.toList()));        
         
-        for(Object key: gamePredictions.keySet()) {
-	    System.out.println(key + " : " + gamePredictions.get(key));           
-	    System.out.println();
-        }
+        sortedPredictions = Lists.reverse(sortedPredictions);   
+        return sortedPredictions;
     }
     
-    public static void nearestNeighborIntersection(long steamId) {
+    public static List<GameDTO> nearestNeighborIntersection(long steamId, boolean pearson) {
 //        Use commented declarations to work with database
 
         UserDTO user = null;
@@ -485,6 +544,10 @@ public class CollaborativeFiltering {
             similarUsers.put(anyUser, anyUserGames.size());            
         }
         
+        if(similarUsers.isEmpty()) {
+            return new ArrayList<GameDTO>();
+        }
+        
         List<UserDTO> sortedUsers = (similarUsers.entrySet().stream().sorted(Map.Entry.comparingByValue())
                 .map(Map.Entry::getKey).collect(Collectors.toList()));
         sortedUsers = Lists.reverse(sortedUsers);   
@@ -493,21 +556,20 @@ public class CollaborativeFiltering {
             sortedUsers = sortedUsers.subList(0, 5);
         }        
                 
-        Map<UserDTO, Double> coeficients = pearsonCoeficientMatrix(user, gamesRatedByUser, 
-                recsByUser, sortedUsers);
+        Map<UserDTO, Double> coeficients = new HashMap<>();
+        if(pearson) {
+           coeficients = pearsonCoeficientMatrix(user, gamesRatedByUser, recsByUser, sortedUsers);
+        } 
+        else {
+            coeficients = diceCoeficient(user, gamesRatedByUser, recsByUser, sortedUsers);
+        }           
         
         Map<GameDTO, Double> gamePredictions = gamePredictions(coeficients, user, gamesRatedByUser, recsByUser);
         List<GameDTO> sortedPredictions = (gamePredictions.entrySet().stream().sorted(Map.Entry.comparingByValue())
                 .map(Map.Entry::getKey).collect(Collectors.toList()));
-        sortedPredictions = Lists.reverse(sortedPredictions);   
-        System.out.println(sortedPredictions);                
+        sortedPredictions = Lists.reverse(sortedPredictions);                 
         
-        for(Object key: gamePredictions.keySet()) {
-	    System.out.println(key + " : " + gamePredictions.get(key));           
-	    System.out.println();
-        }           
-        
-        
+        return sortedPredictions;
     }
     
     
