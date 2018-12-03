@@ -15,7 +15,7 @@
             <input type="text" id="steamId" name="steamId" class="form-control" placeholder="Enter SteamId" required autofocus/>
 
             <label for="minReviews" class="sr-only">Min Reviews:</label>
-            <input type="number" id="minReviews" name="minReviews" class="form-control" placeholder="Enter minReviews count" required/>
+            <input type="number" id="minReviews" name="minReviews" class="form-control" value="10" required/>
 
             <button class="btn btn-lg btn-primary btn-block" type="submit">Download</button>
         </form:form>
