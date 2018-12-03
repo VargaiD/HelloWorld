@@ -35,6 +35,11 @@ public class GameController {
                            @RequestParam int minReviews,
                            RedirectAttributes redirectAttributes){
 
+        app.setMinReviews(minReviews);
+        app.setDebug(2);
+        app.setOffsetDiff(100);
+        app.inteligentParse(Long.parseLong(steamId));
+
         return "/game/download";
     }
 }
