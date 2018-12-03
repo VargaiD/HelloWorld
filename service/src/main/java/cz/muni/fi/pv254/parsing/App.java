@@ -78,6 +78,16 @@ public class App
 
     private int offsetDiff = 20;
 
+    public int getMinReviews() {
+        return minReviews;
+    }
+
+    public void setMinReviews(int minReviews) {
+        this.minReviews = minReviews;
+    }
+
+    private int minReviews = 10;
+
 
     private List<Long> gameIds;
 
@@ -274,7 +284,7 @@ public class App
      * @return description
      */
     public String downloadShortDescritpion(long gameID) {
-        return downloadGameDetails(gameID).get(0);
+        return downloadGameDetails(gameID).get(1);
     }
 
     /**
@@ -283,7 +293,7 @@ public class App
      * @return long descrpiton
      */
     public String downloadLongDescription(long gameID) {
-        return downloadGameDetails(gameID).get(1);
+        return downloadGameDetails(gameID).get(0);
     }
 
     /**
@@ -454,8 +464,11 @@ public class App
         game.setGenres(genres);
         gameFacade.update(game);
 
+        if (debug >= 1) {
+            System.out.println(game.getName());
+        }
         Set<RecommendationDTO> recommendations = new HashSet<>();
-        // TODO recevied size vs parsed size
+        int retrievedItems = 0;
         try {
             String url = "https://store.steampowered.com/appreviews/"
                     + Long.toString(gameID) +
@@ -475,7 +488,8 @@ public class App
                     recc = recc.getJSONObject("author");
                     long num_reviews = recc.getLong("num_reviews");
 //                    System.out.println(num_reviews);
-                    if (num_reviews >= 10) {
+                    retrievedItems++;
+                    if (num_reviews >= minReviews) {
                         RecommendationDTO rec = parseRecommendation(arr.getJSONObject(i), game);
                         recommendations.add(rec);
                     }
@@ -496,7 +510,8 @@ public class App
 
 
         if (debug >=1) {
-            System.out.println("Received size: "+Integer.toString(recommendations.size()));
+            System.out.println("Stored size: " + Integer.toString(recommendations.size()));
+            System.out.println("Retrieved size: "+ Integer.toString(retrievedItems));
             System.out.println("Expected size: "+ Long.toString(getTotalNumberOfReviews(gameID)));
         }
         if (debug >= 3) {
@@ -539,6 +554,9 @@ public class App
 
     public void downloadGameOnly(long gameID) {
         GameDTO game = gameFacade.findBySteamId(gameID);
+        if(debug >=1) {
+            System.out.println("Downloading game only " + gameID);
+        }
         if (game == null) {
             game = new GameDTO();
             game.setSteamId(gameID);
@@ -708,7 +726,8 @@ public class App
         App app = new App();
         app.setOffsetDiff(100);
         app.setDebug(4);
-//        for (int id : games) {
+        System.out.println(app.downloadLongDescription(360430L));
+//  for (int id : games) {
 //            System.out.println(app.downloadGameName(id));
 //            System.out.println(app.getTotalNumberOfReviews(id));
 //            for (int i = 0 ; i< 1 ; i++) { // DO it more times
@@ -717,9 +736,9 @@ public class App
 //
 //            }
 //        }
-        GameDTO game = new GameDTO();
-        game.setSteamId(57690L);
-        System.out.println(app.parseGenres(game));
+//        GameDTO game = new GameDTO();
+//        game.setSteamId(57690L);
+//        System.out.println(app.parseGenres(game));
 
         // user wraith 'Wraith_Skyline' id 76561197994264572
         // made revies on games
