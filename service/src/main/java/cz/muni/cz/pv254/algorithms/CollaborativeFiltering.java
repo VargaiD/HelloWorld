@@ -265,20 +265,9 @@ public class CollaborativeFiltering {
             double denominator_1 = 0;  
             double denominator_2 = 0; 
             
-            for(GameDTO game : recommendedGames) {
-                RecommendationDTO userRecommendation = null;
-                RecommendationDTO similarUserRecommendation = null;
-                for(RecommendationDTO recommendation : recs) {
-                    if(recommendation.getAuthor().equals(similarUser) && recommendation.getGame().equals(game)) {
-                        similarUserRecommendation = recommendation;
-                    }
-                    
-                    if(recommendation.getAuthor().equals(user) && recommendation.getGame().equals(game)) {
-                        userRecommendation = recommendation;
-                    }
-                }
-//                RecommendationDTO userRecommendation = recommendationFacade.findByAuthorAndGame(user, game);      
-//                RecommendationDTO similarUserRecommendation = recommendationFacade.findByAuthorAndGame(similarUser, game);
+            for(GameDTO game : recommendedGames) {                
+                RecommendationDTO userRecommendation = recommendationFacade.findByAuthorAndGame(user, game);      
+                RecommendationDTO similarUserRecommendation = recommendationFacade.findByAuthorAndGame(similarUser, game);
                 if(similarUserRecommendation == null) {
                     continue;
                 }                
@@ -292,7 +281,7 @@ public class CollaborativeFiltering {
                 if(similarUserRecommendation.isVotedUp()) {
                     similarUserRecValue = 1;
                 }
-                //System.out.println(userRecValue);
+                
                 numerator += (userRecValue - userMean)*(similarUserRecValue - similarUserMean);
                 denominator_1 += Math.pow((userRecValue - userMean), 2);
                 denominator_2 += Math.pow((similarUserRecValue - similarUserMean), 2);
@@ -312,35 +301,16 @@ public class CollaborativeFiltering {
         
         Map<UserDTO, Double> coeficients = new HashMap(); 
         
-        for(UserDTO similarUser: sortedUsers) {
-            List<GameDTO> gamesBySimilarUser = new ArrayList<>(); 
-            Set<RecommendationDTO> recsBySimilarUser = similarUser.getRecommendations();
-            
-            for(RecommendationDTO rec : recsBySimilarUser) {
-                gamesBySimilarUser.add(rec.getGame());
-            }    
-            
-//            Probably less effective than the one above
-//            List<GameDTO> gamesBySimilarUser = gameFacade.findRecommendedByUser(similarUser); 
+        for(UserDTO similarUser: sortedUsers) {            
+            List<GameDTO> gamesBySimilarUser = gameFacade.findRecommendedByUser(similarUser); 
             Set<GameDTO> userVector = new HashSet<>();
             userVector.addAll(recommendedGames);
             userVector.addAll(gamesBySimilarUser);
         
             double numerator = 0;
-            for(GameDTO game: userVector) {
-                RecommendationDTO userRecommendation = null;
-                RecommendationDTO similarUserRecommendation = null;
-                for(RecommendationDTO recommendation : recs) {
-                    if(recommendation.getAuthor().equals(similarUser) && recommendation.getGame().equals(game)) {
-                        similarUserRecommendation = recommendation;
-                    }
-                    
-                    if(recommendation.getAuthor().equals(user) && recommendation.getGame().equals(game)) {
-                        userRecommendation = recommendation;
-                    }
-                }
-//                RecommendationDTO userRecommendation = recommendationFacade.findByAuthorAndGame(user, game);      
-//                RecommendationDTO similarUserRecommendation = recommendationFacade.findByAuthorAndGame(similarUser, game);       
+            for(GameDTO game: userVector) {               
+                RecommendationDTO userRecommendation = recommendationFacade.findByAuthorAndGame(user, game);      
+                RecommendationDTO similarUserRecommendation = recommendationFacade.findByAuthorAndGame(similarUser, game);       
                  
                 if(userRecommendation != null && similarUserRecommendation != null) {
                     if(userRecommendation.isVotedUp() && similarUserRecommendation.isVotedUp()) {
@@ -382,15 +352,9 @@ public class CollaborativeFiltering {
     private static List<UserDTO> similarUsers(List<GameDTO> games, List<UserDTO> allUsers) {
         List<UserDTO> similarUsers = new ArrayList<>();
         
-        for(UserDTO anyUser : allUsers) {      
-            Set<RecommendationDTO> anyUserRecs = anyUser.getRecommendations();            
-            List<GameDTO> anyUserGames = new ArrayList<>();
+        for(UserDTO anyUser : allUsers) {                        
+            List<GameDTO> anyUserGames = gameFacade.findRecommendedByUser(anyUser);
             
-            for (RecommendationDTO rec : anyUserRecs) {
-                anyUserGames.add(rec.getGame());
-            } 
-            
-//            List<GameDTO> anyUserGames = gameFacade.findRecommendedByUser(anyUser);
             if(anyUserGames.containsAll(games)) {                
                 similarUsers.add(anyUser);
             }            
@@ -428,15 +392,9 @@ public class CollaborativeFiltering {
                 double coeficient = coeficients.get(similarUser);
                 double similarUserMean = calculateMean(similarUser.getRecommendations());                                
                
-                RecommendationDTO similarUserRecommendation = null;
-                for(RecommendationDTO recommendation : similarUser.getRecommendations()) {
-                    if(recommendation.getAuthor().equals(similarUser) && recommendation.getGame().equals(game)) {
-                        similarUserRecommendation = recommendation;
-                    }              
-                    
-                }
+                RecommendationDTO similarUserRecommendation = recommendationFacade.findByAuthorAndGame(similarUser, game);         
                 
-//                similarUserRecommendation = recommendationFacade.findByAuthorAndGame(similarUser, game);
+                
                 if(similarUserRecommendation == null) {
                     continue;
                 }
@@ -455,28 +413,12 @@ public class CollaborativeFiltering {
         return gamePredictions;
     }
     
-    public static List<GameDTO> nearestNeighborSubset(long steamId, boolean pearson) {
-//        Use commented declarations to work with database
-
-        UserDTO user = null;
-        for(UserDTO identicalUser : users) {
-            if(identicalUser.getSteamId() == steamId) {
-                user = identicalUser;
-                break;
-            }
-        }
-//        UserDTO user = userFacade.findBySteamId(steamId);        
+    public static List<GameDTO> nearestNeighborSubset(long steamId, boolean pearson) {       
+        UserDTO user = userFacade.findBySteamId(steamId);        
         Set<RecommendationDTO> recsByUser = user.getRecommendations();          
-        List<GameDTO> gamesRatedByUser = new ArrayList<>();
-          
-        for(RecommendationDTO rec : recsByUser) {
-            gamesRatedByUser.add(rec.getGame());
-        }        
-//        Probably less effective than the one above
-//        List<GameDTO> gamesRatedByUser = gameFacade.findRecommendedByUser(user);        
-
-        List<UserDTO> allUsers = users;
-//        List<UserDTO> allUsers = userFacade.findAll();
+        List<GameDTO> gamesRatedByUser = gameFacade.findRecommendedByUser(user); 
+        
+        List<UserDTO> allUsers = userFacade.findAll();
         allUsers.remove(user);
         
         List<UserDTO> similarUsers = similarUsers(gamesRatedByUser, allUsers);        
@@ -507,39 +449,19 @@ public class CollaborativeFiltering {
     }
     
     public static List<GameDTO> nearestNeighborIntersection(long steamId, boolean pearson) {
-//        Use commented declarations to work with database
-
-        UserDTO user = null;
-        for(UserDTO identicalUser : users) {
-            if(identicalUser.getSteamId() == steamId) {
-                user = identicalUser;
-                break;
-            }
-        }
-//        UserDTO user = userFacade.findBySteamId(steamId);        
-        Set<RecommendationDTO> recsByUser = user.getRecommendations();          
-        List<GameDTO> gamesRatedByUser = new ArrayList<>();
+        
+        UserDTO user = userFacade.findBySteamId(steamId);        
+        Set<RecommendationDTO> recsByUser = user.getRecommendations();     
           
-        for(RecommendationDTO rec : recsByUser) {
-            gamesRatedByUser.add(rec.getGame());
-        }        
-//        List<GameDTO> gamesRatedByUser = gameFacade.findRecommendedByUser(user);        
-
-        List<UserDTO> allUsers = users;
-//        List<UserDTO> allUsers = userFacade.findAll();
+        List<GameDTO> gamesRatedByUser = gameFacade.findRecommendedByUser(user);   
+        List<UserDTO> allUsers = userFacade.findAll();
         allUsers.remove(user);
         
         Map<UserDTO, Integer> similarUsers = new HashMap();        
         
         for(UserDTO anyUser : allUsers) {      
             Set<RecommendationDTO> anyUserRecs = anyUser.getRecommendations();            
-            List<GameDTO> anyUserGames = new ArrayList<>();
-            
-            for (RecommendationDTO rec : anyUserRecs) {
-                anyUserGames.add(rec.getGame());
-            } 
-            
-//            List<GameDTO> anyUserGames = gameFacade.findRecommendedByUser(anyUser);
+            List<GameDTO> anyUserGames = gameFacade.findRecommendedByUser(anyUser);
             anyUserGames.retainAll(gamesRatedByUser);
             similarUsers.put(anyUser, anyUserGames.size());            
         }
