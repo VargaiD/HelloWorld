@@ -197,7 +197,7 @@ public class contentBasedAlgorithm {
                 }
             }
         }
-        //sort by count word
+        //count frequent tag
         countTag = countTag
                 .entrySet()
                 .stream()
@@ -209,14 +209,22 @@ public class contentBasedAlgorithm {
 
         //Recommendation game
         for (GameDTO Votegame : VoteUserGames) {
+            int ScoreSumAB=0;
             for (GameDTO NotVotegame : notRecUserGames) {
                 contentBasedEntityAB cBentityAB = new contentBasedEntityAB();
                 cBentityAB.setGameA(Votegame);
                 //NotRecommendation game
                 cBentityAB.setGameB(NotVotegame);
-                Set intersectGame = new HashSet();
-                intersectGame.add(Votegame.getGenres().retainAll(NotVotegame.getGenres()));
-                abScore.put(cBentityAB.getGameA().getId() + "," + cBentityAB.getGameB().getId(), intersectGame.size());
+
+                for(GenreDTO genre :Votegame.getGenres()){
+                    for(GenreDTO genreNotvote :NotVotegame.getGenres()){
+                        if(genre.getName().equals(genreNotvote.getName())){
+                            ScoreSumAB=ScoreSumAB+(countTag.get(genreNotvote.getName()));
+                        }
+                    }
+                }
+
+                abScore.put(cBentityAB.getGameA().getId() + "," + cBentityAB.getGameB().getId(), ScoreSumAB);
 
             }
         }
