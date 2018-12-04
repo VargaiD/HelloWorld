@@ -65,4 +65,11 @@ public interface UserFacade {
      * @return author
      */
     UserDTO findBySteamId(Long id);
+
+    /**
+     * Finds user by steam id
+     * @param id steam id
+     * @return author
+     */
+    UserDTO findBySteamId(Long id, boolean populateRecommendations);
 }

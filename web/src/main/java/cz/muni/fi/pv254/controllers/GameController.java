@@ -1,6 +1,7 @@
 package cz.muni.fi.pv254.controllers;
 
 import cz.muni.fi.pv254.dto.GameDTO;
+import cz.muni.fi.pv254.dto.GenreDTO;
 import cz.muni.fi.pv254.dto.RecommendationDTO;
 import cz.muni.fi.pv254.dto.UserDTO;
 import cz.muni.fi.pv254.exceptions.ResourceNotFoundException;
@@ -8,6 +9,7 @@ import cz.muni.fi.pv254.facade.GameFacade;
 import cz.muni.fi.pv254.facade.RecommendationFacade;
 import cz.muni.fi.pv254.facade.UserFacade;
 import cz.muni.fi.pv254.parsing.App;
+import cz.muni.fi.pv254.parsing.contentBasedAlgorithm;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,9 +23,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Controller
 @RequestMapping("/game")
@@ -42,6 +42,9 @@ public class GameController {
 
     @Autowired
     private UserFacade userFacade;
+
+    @Autowired
+    private contentBasedAlgorithm contentBased;
 
     @RequestMapping(value = "/download", method = RequestMethod.GET)
     public String Index(Model model,
@@ -80,7 +83,7 @@ public class GameController {
             UserDTO user = userFacade.findById(authUser.getId());
             Set<RecommendationDTO> recommendations = user.getRecommendations();
 
-            if (recommendations.size() >= 10){
+            if (recommendations.size() >= 9){
                 redirectAttributes.addFlashAttribute("alert_danger", "Games already rated!");
                 return "redirect:/";
             }
@@ -89,6 +92,13 @@ public class GameController {
                 return "redirect:/game/rate/" + recommendations.size();
 
             List<GameDTO> games = gameFacade.findAll();
+
+            if (games.size() < 10 * (step + 1)){
+                redirectAttributes.addFlashAttribute("alert_danger", "Not enough games");
+                return "redirect:/";
+            }
+
+
             games.sort(Comparator.comparing(GameDTO::getSteamId));
             model.addAttribute("games",games.subList(step * 10, (step * 10) + 9));
             model.addAttribute("step", step);
@@ -124,7 +134,7 @@ public class GameController {
             gameFacade.update(game);
             userFacade.update(user);
 
-            if (step == 9){
+            if (step == 8){
                 redirectAttributes.addFlashAttribute("alert_info", "Games Successfully Rated!");
                 return "redirect:/";
             }
@@ -142,7 +152,7 @@ public class GameController {
             return loginRedirect(redirectAttributes);
         }
         UserDTO user = userFacade.findById(authUser.getId());
-        if (user.getRecommendations().size() < 10){
+        if (user.getRecommendations().size() < 9){
             redirectAttributes.addFlashAttribute("alert_info", "Please finish rating games");
             return "redirect:/game/rate/" + user.getRecommendations().size();
         }
@@ -161,7 +171,12 @@ public class GameController {
         //Replace with call to collaborative pearson
         List<GameDTO> games = gameFacade.findAll();
         games.sort(Comparator.comparing(GameDTO::getSteamId));
-        model.addAttribute("games",games.subList(0, 4));
+        games = games.subList(0, 4);
+        model.addAttribute("games",games);
+
+        if (games.size() < 10)
+            populatePictures(games, model);
+        populateGenres(games, model);
 
         return "game/games";
     }
@@ -177,7 +192,12 @@ public class GameController {
         //replace with call to collaborative dice
         List<GameDTO> games = gameFacade.findAll();
         games.sort(Comparator.comparing(GameDTO::getSteamId));
-        model.addAttribute("games",games.subList(0, 4));
+        games = games.subList(0, 4);
+        model.addAttribute("games",games);
+
+        if (games.size() < 10)
+            populatePictures(games, model);
+        populateGenres(games, model);
 
         return "game/games";
     }
@@ -190,10 +210,15 @@ public class GameController {
         if (redirect != null)
             return redirect;
 
-        //replace with call to content based by description
-        List<GameDTO> games = gameFacade.findAll();
-        games.sort(Comparator.comparing(GameDTO::getSteamId));
-        model.addAttribute("games",games.subList(0, 4));
+        UserDTO authUser = (UserDTO) req.getSession().getAttribute("authUser");
+
+        UserDTO user = userFacade.findById(authUser.getId());
+        Set<GameDTO> games = contentBased.recommendationByWord(user);
+        model.addAttribute("games",games);
+
+        if (games.size() < 10)
+            populatePictures(games, model);
+        populateGenres(games, model);
 
         return "game/games";
     }
@@ -206,10 +231,13 @@ public class GameController {
         if (redirect != null)
             return redirect;
 
-        //replace with call to content based by genre
-        List<GameDTO> games = gameFacade.findAll();
-        games.sort(Comparator.comparing(GameDTO::getSteamId));
-        model.addAttribute("games",games.subList(0, 4));
+        UserDTO authUser = (UserDTO) req.getSession().getAttribute("authUser");
+        UserDTO user = userFacade.findById(authUser.getId());
+        Set<GameDTO> games = contentBased.recommendationFrequentByTag(user);
+        model.addAttribute("games",games);
+        if (games.size() < 10)
+            populatePictures(games, model);
+        populateGenres(games, model);
 
         return "game/games";
     }
@@ -227,11 +255,36 @@ public class GameController {
             return loginRedirect(redirectAttributes);
         }
         UserDTO user = userFacade.findById(authUser.getId());
-        if (user.getRecommendations().size() < 10){
+        if (user.getRecommendations().size() < 9){
             redirectAttributes.addFlashAttribute("alert_info", "Please finish rating games");
             return "redirect:/game/rate/" + user.getRecommendations().size();
         }
 
         return null;
+    }
+
+    private void populatePictures(Collection<GameDTO> games, Model model){
+        Map<Long, String> pictures = new HashMap<>();
+
+        for (GameDTO game: games) {
+            pictures.put(game.getId(), app.downloadGamePictureUrl(game.getSteamId()));
+        }
+
+        model.addAttribute("pictures", pictures);
+    }
+
+    private void populateGenres(Collection<GameDTO> games, Model model){
+        Map<Long, String> genres = new HashMap<>();
+
+        for (GameDTO game: games) {
+            String genresMerged = "";
+            for (GenreDTO genre: game.getGenres()) {
+                genresMerged += genre.getName() + ", ";
+            }
+            genresMerged = genresMerged.substring(0, genresMerged.length() - 2);
+            genres.put(game.getId(), genresMerged);
+        }
+
+        model.addAttribute("genres", genres);
     }
 }

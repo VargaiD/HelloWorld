@@ -89,7 +89,12 @@ public class UserFacadeImpl implements UserFacade {
 
     @Override
     public UserDTO findBySteamId(Long id) {
-        User user = userService.findBySteamId(id);
+        return findBySteamId(id, false);
+    }
+
+    @Override
+    public UserDTO findBySteamId(Long id, boolean populateRecommendations) {
+        User user = userService.findBySteamId(id, populateRecommendations);
         if (user == null) {
             return null;
         }

@@ -174,8 +174,13 @@ public class UserServiceImpl implements UserService {
     }
 
     public User findBySteamId(Long id) {
+        return findBySteamId(id, false);
+    }
+
+    @Override
+    public User findBySteamId(Long id, boolean populateRecommendations) {
         try {
-            return userDao.findBySteamId(id);
+            return userDao.findBySteamId(id, populateRecommendations);
         } catch (NullPointerException ex) {
             throw ex;
         } catch (Exception ex) {

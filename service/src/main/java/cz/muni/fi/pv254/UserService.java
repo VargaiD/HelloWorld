@@ -67,4 +67,6 @@ public interface UserService {
      * @return user
      */
     User findBySteamId(Long id);
+
+    User findBySteamId(Long id, boolean populateRecommendations);
 }

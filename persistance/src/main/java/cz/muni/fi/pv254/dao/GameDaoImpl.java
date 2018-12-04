@@ -74,8 +74,11 @@ public class GameDaoImpl implements GameDao {
             throw new IllegalArgumentException("Cannot search for steam id null");
         }
         try {
-            Game game = em.createQuery("Select game From Game game Where game.steamId = :id",
-                    Game.class).setParameter("id", id).getSingleResult();
+            Game game = em.createQuery("Select game From Game game LEFT JOIN FETCH" +
+                    " game.genres LEFT JOIN FETCH game.words LEFT JOIN FETCH" +
+                    " game.recommendations rec LEFT JOIN FETCH rec.author a left join fetch a.recommendations WHERE" +
+                    " game.steamId = :id", Game.class)
+                    .setParameter("id", id).getSingleResult();
             PopulateGenres(game);
             return game;
         }

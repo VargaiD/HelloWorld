@@ -14,6 +14,8 @@
             <tr>
                 <th>Name</th>
                 <th>Description</th>
+                <th>Genres</th>
+                <th>Image</th>
             </tr>
             </thead>
             <tbody>
@@ -21,6 +23,8 @@
                 <tr>
                     <td>${game.name}</td>
                     <td>${game.shortDescription}</td>
+                    <td>${genres.get(game.id)}</td>
+                    <td><img src="${pictures.get(game.id)}"></td>
                 </tr>
             </c:forEach>
             </tbody>

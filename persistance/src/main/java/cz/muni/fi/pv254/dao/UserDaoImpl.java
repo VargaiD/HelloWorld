@@ -64,6 +64,11 @@ public class UserDaoImpl implements UserDao {
 
     @Override
     public User findBySteamId(Long id) {
+        return findBySteamId(id, false);
+    }
+
+    @Override
+    public User findBySteamId(Long id, boolean populateRecommendations) {
 
         if (id == null) {
             throw new IllegalArgumentException("Cannot search for steam id null");
@@ -71,7 +76,8 @@ public class UserDaoImpl implements UserDao {
         try {
             User user = em.createQuery("Select user From User user Where user.steamId = :id",
                     User.class).setParameter("id", id).getSingleResult();
-            populateRecommendations(user);
+            if (populateRecommendations)
+                populateRecommendations(user);
             return user;
         }
         catch (NoResultException e) {
