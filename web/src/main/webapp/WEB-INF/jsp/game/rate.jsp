@@ -9,17 +9,29 @@
 
 <jsp:attribute name="body">
     <div class="container">
-        <h1>Choose one game you like, step: ${step + 1}/10</h1>
-            <table>
-            <c:forEach items="${games}" var="game">
+        <h1>Choose one game you like, step: ${step + 1}/9</h1>
+            <table class="table">
+                <thead>
                 <tr>
-                    <td>
-                        <form:form class="form" method="POST" action="${pageContext.request.contextPath}/game/rate/${step}/${game.id}">
-                          <button class="btn btn-lg btn-primary btn-block" type="submit">${game.name}</button>
-                        </form:form>
-                    </td>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Genres</th>
                 </tr>
-            </c:forEach>
+                </thead>
+                <tbody>
+                <c:forEach items="${games}" var="game">
+                    <tr>
+                        <td>${game.name}</td>
+                        <td>${game.shortDescription}</td>
+                        <td>${genres.get(game.id)}</td>
+                        <td>
+                            <form:form class="form" method="POST" action="${pageContext.request.contextPath}/game/rate/${step}/${game.id}">
+                              <button class="btn btn-lg btn-primary btn-block" type="submit">Select</button>
+                            </form:form>
+                        </td>
+                    </tr>
+                </c:forEach>
+                </tbody>
             </table>
     </div>
 </jsp:attribute>

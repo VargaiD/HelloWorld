@@ -100,8 +100,10 @@ public class GameController {
 
 
             games.sort(Comparator.comparing(GameDTO::getSteamId));
-            model.addAttribute("games",games.subList(step * 10, (step * 10) + 9));
+            games = games.subList(step * 10, (step * 10) + 9);
+            model.addAttribute("games",games);
             model.addAttribute("step", step);
+            populateGenres(games, model);
 
             return "game/rate";
         }
@@ -281,7 +283,8 @@ public class GameController {
             for (GenreDTO genre: game.getGenres()) {
                 genresMerged += genre.getName() + ", ";
             }
-            genresMerged = genresMerged.substring(0, genresMerged.length() - 2);
+            if (genresMerged.length() > 2)
+                genresMerged = genresMerged.substring(0, genresMerged.length() - 2);
             genres.put(game.getId(), genresMerged);
         }
 
