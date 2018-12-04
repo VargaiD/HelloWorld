@@ -215,17 +215,20 @@ public class contentBasedAlgorithm {
                 cBentityAB.setGameA(Votegame);
                 //NotRecommendation game
                 cBentityAB.setGameB(NotVotegame);
-
-                for(GenreDTO genre :Votegame.getGenres()){
-                    for(GenreDTO genreNotvote :NotVotegame.getGenres()){
+                Set<GenreDTO> voteGenre= Votegame.getGenres();
+                Set<GenreDTO> NotVoteGenre= NotVotegame.getGenres();
+                for(GenreDTO genre :voteGenre){
+                    for(GenreDTO genreNotvote :NotVoteGenre){
                         if(genre.getName().equals(genreNotvote.getName())){
                             ScoreSumAB=ScoreSumAB+(countTag.get(genreNotvote.getName()));
+                          //  ScoreSumAB=ScoreSumAB+(countTag.get(genreNotvote.getName())*countTag.get(genreNotvote.getName()));
+                         //   System.out.println(ScoreSumAB+""+genre.getName()+" "+genreNotvote.getName());
                         }
                     }
                 }
 
                 abScore.put(cBentityAB.getGameA().getId() + "," + cBentityAB.getGameB().getId(), ScoreSumAB);
-
+                ScoreSumAB=0;
             }
         }
 
@@ -290,16 +293,26 @@ public class contentBasedAlgorithm {
             notRecUserGames.add(not.getValue());
         }
         //Recommendation game
+
         for (GameDTO Votegame : VoteUserGames) {
+            int ScoreSumAB=0;
             for (GameDTO NotVotegame : notRecUserGames) {
                 contentBasedEntityAB cBentityAB = new contentBasedEntityAB();
                 cBentityAB.setGameA(Votegame);
                 //NotRecommendation game
                 cBentityAB.setGameB(NotVotegame);
-                Set intersectGame = new HashSet();
-                intersectGame.add(Votegame.getGenres().retainAll(NotVotegame.getGenres()));
-                abScore.put(cBentityAB.getGameA().getId() + "," + cBentityAB.getGameB().getId(), intersectGame.size());
-
+                Set<GenreDTO> voteGenre= Votegame.getGenres();
+                Set<GenreDTO> NotVoteGenre= NotVotegame.getGenres();
+                for(GenreDTO genre :voteGenre){
+                    for(GenreDTO genreNotvote :NotVoteGenre){
+                        if(genre.getName().equals(genreNotvote.getName())){
+                          //  System.out.println(genre.getName()+"das"+genreNotvote.getName()+" "+ScoreSumAB);
+                            ScoreSumAB=ScoreSumAB+1;
+                        }
+                    }
+                }
+                abScore.put(cBentityAB.getGameA().getId() + "," + cBentityAB.getGameB().getId(),ScoreSumAB);
+                ScoreSumAB=0;
             }
         }
         //sorted by
