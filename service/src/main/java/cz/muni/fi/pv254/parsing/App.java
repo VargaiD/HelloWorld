@@ -57,6 +57,8 @@ public class App
     private UserFacade userFacade;
     @Autowired
     private GenreFacade genreFacade;
+    @Autowired
+    private PersistenceApp persistenceApp;
 
     public int getOffsetDiff() {
         return offsetDiff;
@@ -555,6 +557,11 @@ public class App
      * @return number of downloaded reviews
      */
     public int inteligentParse(long gameID) {
+        if (true) {
+            persistenceApp.setDebug(2);
+            return persistenceApp.inteligentParse(gameID);
+
+        }
         GameDTO game = gameFacade.findBySteamId(gameID);
         if (game == null) {
             game = new GameDTO();
