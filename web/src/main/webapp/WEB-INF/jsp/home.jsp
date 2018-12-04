@@ -10,10 +10,13 @@
 <jsp:attribute name="body">
     <div class="container">
         <h1>Welcome to Steam Game Recommender</h1>
+        <h2>Create an account, rate 9 games and get a recommendation !</h2>
         <form:form class="form" method="POST" action="${pageContext.request.contextPath}">
             <button class="btn btn-lg btn-primary btn-block" type="submit">Download</button>
         </form:form>
-        <img src="images/title.jpg" width="100%">
+        <form:form class="form" method="POST" action="${pageContext.request.contextPath}/descriptions">
+            <button class="btn btn-lg btn-primary btn-block" type="submit">Download Descriptions</button>
+        </form:form>
     </div>
 </jsp:attribute>
 

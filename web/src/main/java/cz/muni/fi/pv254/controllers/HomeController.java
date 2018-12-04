@@ -71,4 +71,14 @@ public class HomeController {
 //        }
         return "/home";
     }
+
+    @RequestMapping(value = "/descriptions", method = RequestMethod.POST)
+    public String DownloadDescriptions(){
+
+        app.loadTop100();
+        for (Long id:app.getGameIds()) {
+            app.parseDescrpition(id);
+        }
+        return "/home";
+    }
 }

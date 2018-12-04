@@ -19,6 +19,9 @@
         <a href="${pageContext.request.contextPath}/game/genreBased">
             <button class="btn btn-lg btn-primary btn-block">Genre Based</button>
         </a>
+        <a href="${pageContext.request.contextPath}/game/genreBasedFrequent">
+            <button class="btn btn-lg btn-primary btn-block">Genre Based Frequent</button>
+        </a>
         <a href="${pageContext.request.contextPath}/game/descriptionBased">
             <button class="btn btn-lg btn-primary btn-block">Description Based</button>
         </a>

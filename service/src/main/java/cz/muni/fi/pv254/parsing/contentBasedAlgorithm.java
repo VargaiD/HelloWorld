@@ -8,12 +8,14 @@ import cz.muni.fi.pv254.facade.RecommendationFacade;
 import cz.muni.fi.pv254.facade.UserFacade;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
 import static java.util.stream.Collectors.toMap;
 
 @Component
+@Transactional
 public class contentBasedAlgorithm {
     public class contentBasedEntityAB {
         private GameDTO gameA;

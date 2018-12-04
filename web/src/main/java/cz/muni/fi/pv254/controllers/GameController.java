@@ -225,8 +225,8 @@ public class GameController {
         return "game/games";
     }
 
-    @RequestMapping("/genreBased")
-    public String GenreBased(Model model,
+    @RequestMapping("/genreBasedFrequent")
+    public String GenreBasedFrequent(Model model,
                                        HttpServletRequest req,
                                        RedirectAttributes redirectAttributes){
         String redirect = canGetRecommendation(req, redirectAttributes);
@@ -236,6 +236,45 @@ public class GameController {
         UserDTO authUser = (UserDTO) req.getSession().getAttribute("authUser");
         UserDTO user = userFacade.findById(authUser.getId());
         Set<GameDTO> games = contentBased.recommendationFrequentByTag(user);
+        model.addAttribute("games",games);
+        if (games.size() < 10)
+            populatePictures(games, model);
+        populateGenres(games, model);
+
+        return "game/games";
+    }
+
+    @RequestMapping("/genreBased")
+    public String GenreBased(Model model,
+                             HttpServletRequest req,
+                             RedirectAttributes redirectAttributes){
+        String redirect = canGetRecommendation(req, redirectAttributes);
+        if (redirect != null)
+            return redirect;
+
+        UserDTO authUser = (UserDTO) req.getSession().getAttribute("authUser");
+        UserDTO user = userFacade.findById(authUser.getId());
+        Set<GameDTO> games = contentBased.recommendationByTag(user);
+        model.addAttribute("games",games);
+        if (games.size() < 10)
+            populatePictures(games, model);
+        populateGenres(games, model);
+
+        return "game/games";
+    }
+
+    @RequestMapping("/rated")
+    public String MyGames(Model model,
+                          HttpServletRequest req,
+                          RedirectAttributes redirectAttributes){
+
+        String redirect = canGetRecommendation(req, redirectAttributes);
+        if (redirect != null)
+            return redirect;
+
+        UserDTO authUser = (UserDTO) req.getSession().getAttribute("authUser");
+        UserDTO user = userFacade.findById(authUser.getId());
+        List<GameDTO> games = gameFacade.findRecommendedByUser(user);
         model.addAttribute("games",games);
         if (games.size() < 10)
             populatePictures(games, model);
