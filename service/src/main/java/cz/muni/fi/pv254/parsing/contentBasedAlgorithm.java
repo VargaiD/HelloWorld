@@ -67,12 +67,13 @@ public class contentBasedAlgorithm {
      * @param userDTO
      * @return
      */
-    private Set<GameDTO> recommendationByWord(UserDTO userDTO){
+    public Set<GameDTO> recommendationByWord(UserDTO userDTO){
 
         Set<GameDTO> userGames= new HashSet<>();
         Set<GameDTO> VoteUserGames= new HashSet<>();
         Set<GameDTO> bestScore = new HashSet<>();
         Map<String, Double> abScore = new HashMap<>();
+        Map<String, GameDTO> uniqABScore = new HashMap<>();
         for(RecommendationDTO reDTO: userDTO.getRecommendations()){
                 if(reDTO.isVotedUp()){
                     VoteUserGames.add(reDTO.getGame());
@@ -80,11 +81,22 @@ public class contentBasedAlgorithm {
                 userGames.add(reDTO.getGame());
 
         }
-        List<GameDTO> notRecUserGames =gameFacade.findAll();
-        for(GameDTO game: userGames){
-            notRecUserGames.remove(game);
+        Map<Long, GameDTO> notRecUserGames2 = new HashMap<>();
+        for (GameDTO g : gameFacade.findAll()){
+            notRecUserGames2.put(g.getId(),g);
         }
-        //hodnotena hra
+        for(GameDTO g:userGames){
+           try {
+               notRecUserGames2.remove(g.getId());
+           }
+           catch (Exception e){}
+        }
+        List<GameDTO> notRecUserGames= new ArrayList<>();
+        for (  Map.Entry<Long, GameDTO> not : notRecUserGames2.entrySet()) {
+            notRecUserGames.add(not.getValue());
+        }
+
+        //Recommendation game
         for(GameDTO Votegame: VoteUserGames){
             Double ScoreSumAB=0D;
             for(GameDTO NotVotegame: notRecUserGames){
@@ -99,14 +111,14 @@ public class contentBasedAlgorithm {
                 }
                 contentBasedEntityAB cBentityAB=new contentBasedEntityAB();
                 cBentityAB.setGameA(Votegame);
-                //nehodnotene
+                //NotRecommendation game
                 cBentityAB.setGameB(NotVotegame);
                 cBentityAB.setScoreAB(ScoreSumAB/(scoreA(Votegame)*scoreA(NotVotegame)));
                 abScore.put(cBentityAB.getGameA().getId()+","+cBentityAB.getGameB().getId(), cBentityAB.getScoreAB());
 
             }
         }
-        //sorted by
+        //sort
         abScore = abScore
                 .entrySet()
                 .stream()
@@ -116,17 +128,23 @@ public class contentBasedAlgorithm {
                                 LinkedHashMap::new));
 
         //return only 5 games with best score
+
         for ( Map.Entry<String, Double> me : abScore.entrySet()) {
-            if(bestScore.size()<6) {
+            if(bestScore.size()<5) {
                 String id = me.getKey();
                 String a[] = id.split(",");
                 GameDTO game = gameFacade.findById(Long.parseLong(a[1]));
-                bestScore.add(game);
+                //unique
+                if(!uniqABScore.containsKey(a[1])) {
+                    if(Double.POSITIVE_INFINITY>me.getValue()){
+                        uniqABScore.put(a[1],game);
+                        bestScore.add(game);
+                    }
+                }
+
             }
             else break;
         }
-
-
         return bestScore;
     }
 
@@ -140,37 +158,142 @@ public class contentBasedAlgorithm {
         return Math.sqrt(ScoreSumA);
     }
 
-    private Set<GameDTO> recommendationByTag(UserDTO userDTO){
-        Set<GameDTO> userGames= new HashSet<>();
-        Set<GameDTO> VoteUserGames= new HashSet<>();
+    public Set<GameDTO> recommendationFrequentByTag(UserDTO userDTO) {
+        Set<GameDTO> userGames = new HashSet<>();
+        Set<GameDTO> VoteUserGames = new HashSet<>();
         Set<GameDTO> bestScore = new HashSet<>();
         Map<String, Integer> abScore = new HashMap<>();
+        Map<String, GameDTO> uniqABScore = new HashMap<>();
         Map<Long, Integer> countIntersection = new HashMap<>();
-        for(RecommendationDTO reDTO: userDTO.getRecommendations()){
-            if(reDTO.isVotedUp()){
+        Map<String, Integer> countTag = new HashMap<>();
+        for (RecommendationDTO reDTO : userDTO.getRecommendations()) {
+            if (reDTO.isVotedUp()) {
                 VoteUserGames.add(reDTO.getGame());
             }
             userGames.add(reDTO.getGame());
 
         }
-        List<GameDTO> notRecUserGames =gameFacade.findAll();
-        for(GameDTO game: userGames){
-            notRecUserGames.remove(game);
+        Map<Long, GameDTO> notRecUserGames2 = new HashMap<>();
+        for (GameDTO g : gameFacade.findAll()) {
+            notRecUserGames2.put(g.getId(), g);
         }
-        //hodnotena hra
-        for(GameDTO Votegame: VoteUserGames) {
+        for (GameDTO g : userGames) {
+            try {
+                notRecUserGames2.remove(g.getId());
+            } catch (Exception e) {
+            }
+        }
+        List<GameDTO> notRecUserGames = new ArrayList<>();
+        for (Map.Entry<Long, GameDTO> not : notRecUserGames2.entrySet()) {
+            notRecUserGames.add(not.getValue());
+        }
+        ///frequent by genres
+        for (GameDTO Votegame : VoteUserGames) {
+            for (GenreDTO genre : Votegame.getGenres()) {
+                if (countTag.containsKey(genre.getName())) {
+                    countTag.put(genre.getName(), 1 + countTag.get(genre.getName()));
+                } else {
+                    countTag.put(genre.getName(), 1);
+                }
+            }
+        }
+        //sort by count word
+        countTag = countTag
+                .entrySet()
+                .stream()
+                .sorted(Collections.reverseOrder(Map.Entry.comparingByValue()))
+                .collect(
+                        toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e2,
+                                LinkedHashMap::new));
+
+
+        //Recommendation game
+        for (GameDTO Votegame : VoteUserGames) {
             for (GameDTO NotVotegame : notRecUserGames) {
-                contentBasedEntityAB cBentityAB=new contentBasedEntityAB();
+                contentBasedEntityAB cBentityAB = new contentBasedEntityAB();
                 cBentityAB.setGameA(Votegame);
-                //nehodnotene
+                //NotRecommendation game
                 cBentityAB.setGameB(NotVotegame);
                 Set intersectGame = new HashSet();
                 intersectGame.add(Votegame.getGenres().retainAll(NotVotegame.getGenres()));
-                abScore.put(cBentityAB.getGameA().getId()+","+cBentityAB.getGameB().getId(), intersectGame.size());
+                abScore.put(cBentityAB.getGameA().getId() + "," + cBentityAB.getGameB().getId(), intersectGame.size());
 
             }
         }
 
+
+            //sorted by
+            abScore = abScore
+                    .entrySet()
+                    .stream()
+                    .sorted(Collections.reverseOrder(Map.Entry.comparingByValue()))
+                    .collect(
+                            toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e2,
+                                    LinkedHashMap::new));
+
+            //return only 5 games with best score
+            for (Map.Entry<String, Integer> tag : abScore.entrySet()) {
+                if (bestScore.size() < 5) {
+                    String id = tag.getKey();
+                    String a[] = id.split(",");
+                    GameDTO game = gameFacade.findById(Long.parseLong(a[1]));
+                    if (!uniqABScore.containsKey(a[1])) {
+                        if (Double.POSITIVE_INFINITY > tag.getValue()) {
+                            uniqABScore.put(a[1], game);
+                            bestScore.add(game);
+                        }
+                    }
+                } else break;
+            }
+
+
+            return bestScore;
+        }
+
+
+
+    public Set<GameDTO> recommendationByTag(UserDTO userDTO) {
+        Set<GameDTO> userGames = new HashSet<>();
+        Set<GameDTO> VoteUserGames = new HashSet<>();
+        Set<GameDTO> bestScore = new HashSet<>();
+        Map<String, Integer> abScore = new HashMap<>();
+        Map<String, GameDTO> uniqABScore = new HashMap<>();
+        Map<Long, Integer> countIntersection = new HashMap<>();
+        Map<String, Integer> countTag = new HashMap<>();
+        for (RecommendationDTO reDTO : userDTO.getRecommendations()) {
+            if (reDTO.isVotedUp()) {
+                VoteUserGames.add(reDTO.getGame());
+            }
+            userGames.add(reDTO.getGame());
+
+        }
+        Map<Long, GameDTO> notRecUserGames2 = new HashMap<>();
+        for (GameDTO g : gameFacade.findAll()) {
+            notRecUserGames2.put(g.getId(), g);
+        }
+        for (GameDTO g : userGames) {
+            try {
+                notRecUserGames2.remove(g.getId());
+            } catch (Exception e) {
+            }
+        }
+        List<GameDTO> notRecUserGames = new ArrayList<>();
+        for (Map.Entry<Long, GameDTO> not : notRecUserGames2.entrySet()) {
+            notRecUserGames.add(not.getValue());
+        }
+        //Recommendation game
+        for (GameDTO Votegame : VoteUserGames) {
+            for (GameDTO NotVotegame : notRecUserGames) {
+                contentBasedEntityAB cBentityAB = new contentBasedEntityAB();
+                cBentityAB.setGameA(Votegame);
+                //NotRecommendation game
+                cBentityAB.setGameB(NotVotegame);
+                Set intersectGame = new HashSet();
+                intersectGame.add(Votegame.getGenres().retainAll(NotVotegame.getGenres()));
+                abScore.put(cBentityAB.getGameA().getId() + "," + cBentityAB.getGameB().getId(), intersectGame.size());
+
+            }
+        }
         //sorted by
         abScore = abScore
                 .entrySet()
@@ -181,14 +304,18 @@ public class contentBasedAlgorithm {
                                 LinkedHashMap::new));
 
         //return only 5 games with best score
-        for ( Map.Entry<String, Integer> tag : abScore.entrySet()) {
-            if(bestScore.size()<=5) {
+        for (Map.Entry<String, Integer> tag : abScore.entrySet()) {
+            if (bestScore.size() < 5) {
                 String id = tag.getKey();
                 String a[] = id.split(",");
                 GameDTO game = gameFacade.findById(Long.parseLong(a[1]));
-                bestScore.add(game);
-            }
-            else break;
+                if (!uniqABScore.containsKey(a[1])) {
+                    if (Double.POSITIVE_INFINITY > tag.getValue()) {
+                        uniqABScore.put(a[1], game);
+                        bestScore.add(game);
+                    }
+                }
+            } else break;
         }
 
 
@@ -196,4 +323,6 @@ public class contentBasedAlgorithm {
     }
 
 
-}
+
+
+    }

@@ -413,8 +413,13 @@ public class App
         Map<String, Integer> words = new HashMap<>();
         ArrayList<String> deleteWord = new ArrayList();
         deleteWord.add("ARE");
-        deleteWord.add("NOT");
+       // deleteWord.add("NOT");
         deleteWord.add("AND");
+        deleteWord.add("THE");
+        deleteWord.add("FOR");
+        deleteWord.add("WITH");
+        deleteWord.add("BUT");
+
         String longDescription= downloadLongDescription(game.getSteamId());
         longDescription = stripHtmlRegex(longDescription);
         longDescription = stripTagsCharArray(longDescription);
@@ -425,10 +430,11 @@ public class App
         for(String delWord : deleteWord ) {
             longDescription = longDescription.replaceAll(delWord, "");
         }
+        longDescription =longDescription.replaceAll("\\s{2,}", " ").trim();
+
         String a[] = longDescription.split(" ");
         //counting occurance word
         for (String str : a) {
-            System.out.println(str);
             if(str.length()>2){
                 if (words.containsKey(str)) {
                     words.put(str, 1 + words.get(str));
