@@ -157,12 +157,19 @@ public class CollaborativeFiltering {
     private List<UserDTO> similarUsers(List<GameDTO> games, List<UserDTO> allUsers) {
         List<UserDTO> similarUsers = new ArrayList<>();
         
-        for(UserDTO anyUser : allUsers) {                        
+        int counter = 0;
+        for(UserDTO anyUser : allUsers) {     
+            if(counter == 100) {
+                break;
+            }
+            
             List<GameDTO> anyUserGames = gameFacade.findRecommendedByUser(anyUser);
             
             if(anyUserGames.containsAll(games)) {                
                 similarUsers.add(anyUser);
-            }            
+                counter += 1;
+            }           
+            
         }
         return similarUsers;
     }
@@ -264,10 +271,19 @@ public class CollaborativeFiltering {
         
         Map<UserDTO, Integer> similarUsers = new HashMap();        
         
+        int counter = 0;
         for(UserDTO anyUser : allUsers) {
+            if(counter == 5) {
+                break;
+            }
+            
             List<GameDTO> anyUserGames = gameFacade.findRecommendedByUser(anyUser);
             anyUserGames.retainAll(gamesRatedByUser);
-            similarUsers.put(anyUser, anyUserGames.size());            
+            similarUsers.put(anyUser, anyUserGames.size());
+            
+            if(anyUserGames.size() == gamesRatedByUser.size()) {
+                counter += 1;
+            }            
         }
         
         if(similarUsers.isEmpty()) {
