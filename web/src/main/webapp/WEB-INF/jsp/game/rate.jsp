@@ -25,8 +25,13 @@
                         <td>${game.shortDescription}</td>
                         <td>${genres.get(game.id)}</td>
                         <td>
-                            <form:form class="form" method="POST" action="${pageContext.request.contextPath}/game/rate/${step}/${game.id}">
-                              <button class="btn btn-lg btn-primary btn-block" type="submit">Select</button>
+                            <form:form class="form" method="POST" action="${pageContext.request.contextPath}/game/rate/${step}/${game.id}/1">
+                              <button class="btn btn-lg btn-primary btn-block" type="submit">Like</button>
+                            </form:form>
+                        </td>
+                        <td>
+                            <form:form class="form" method="POST" action="${pageContext.request.contextPath}/game/rate/${step}/${game.id}/0">
+                              <button class="btn btn-lg btn-primary btn-block" type="submit">Dislike</button>
                             </form:form>
                         </td>
                     </tr>
