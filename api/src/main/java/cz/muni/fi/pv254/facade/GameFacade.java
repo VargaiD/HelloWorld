@@ -55,4 +55,6 @@ public interface GameFacade {
      * @return list of games
      */
     List<GameDTO>findRecommendedByUser(UserDTO author);
+
+    Long countGames();
 }

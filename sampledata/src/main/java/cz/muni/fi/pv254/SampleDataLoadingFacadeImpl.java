@@ -135,7 +135,6 @@ public class SampleDataLoadingFacadeImpl implements SampleDataLoadingFacade {
         Game g = new Game();
         g.setSteamId(steamId);
         g.setName(name);
-        g.setRecommendations(new HashSet<>());
 
         Game existing = gameService.findByName(name);
         if (existing == null)

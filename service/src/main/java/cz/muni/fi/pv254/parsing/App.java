@@ -14,6 +14,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.xml.ws.http.HTTPException;
 import java.io.BufferedReader;
@@ -37,6 +38,8 @@ import static java.util.stream.Collectors.toMap;
  *
  * @author Marek Valko
  */
+
+@Transactional
 @Component
 public class App
 {

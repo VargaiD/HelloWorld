@@ -76,4 +76,9 @@ public class GameFacadeImpl implements GameFacade {
     public List<GameDTO> findRecommendedByUser(UserDTO author) {
         return mappingService.mapTo(gameService.findRecommendedByUser(mappingService.mapTo(author, User.class)), GameDTO.class);
     }
+
+    @Override
+    public Long countGames() {
+        return gameService.countGames();
+    }
 }

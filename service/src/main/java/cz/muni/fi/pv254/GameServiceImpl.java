@@ -103,4 +103,9 @@ public class GameServiceImpl implements GameService {
             throw new PersistenceException(ex.getMessage());
         }
     }
+
+    @Override
+    public Long countGames() {
+        return gameDao.countGames();
+    }
 }

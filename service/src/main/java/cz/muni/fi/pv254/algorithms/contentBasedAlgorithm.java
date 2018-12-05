@@ -1,4 +1,4 @@
-package cz.muni.fi.pv254.parsing;
+package cz.muni.fi.pv254.algorithms;
 
 import cz.muni.fi.pv254.dto.*;
 import cz.muni.fi.pv254.entity.Recommendation;
@@ -8,12 +8,14 @@ import cz.muni.fi.pv254.facade.RecommendationFacade;
 import cz.muni.fi.pv254.facade.UserFacade;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
 import static java.util.stream.Collectors.toMap;
 
 @Component
+@Transactional
 public class contentBasedAlgorithm {
     public class contentBasedEntityAB {
         private GameDTO gameA;
@@ -74,7 +76,7 @@ public class contentBasedAlgorithm {
         Set<GameDTO> bestScore = new HashSet<>();
         Map<String, Double> abScore = new HashMap<>();
         Map<String, GameDTO> uniqABScore = new HashMap<>();
-        for(RecommendationDTO reDTO: userDTO.getRecommendations()){
+        for(RecommendationDTO reDTO: new HashSet<>(recommendationFacade.findByAuthor(userDTO))){
                 if(reDTO.isVotedUp()){
                     VoteUserGames.add(reDTO.getGame());
                 }
@@ -166,7 +168,7 @@ public class contentBasedAlgorithm {
         Map<String, GameDTO> uniqABScore = new HashMap<>();
         Map<Long, Integer> countIntersection = new HashMap<>();
         Map<String, Integer> countTag = new HashMap<>();
-        for (RecommendationDTO reDTO : userDTO.getRecommendations()) {
+        for (RecommendationDTO reDTO : new HashSet<>(recommendationFacade.findByAuthor(userDTO))) {
             if (reDTO.isVotedUp()) {
                 VoteUserGames.add(reDTO.getGame());
             }
@@ -271,7 +273,7 @@ public class contentBasedAlgorithm {
         Map<String, GameDTO> uniqABScore = new HashMap<>();
         Map<Long, Integer> countIntersection = new HashMap<>();
         Map<String, Integer> countTag = new HashMap<>();
-        for (RecommendationDTO reDTO : userDTO.getRecommendations()) {
+        for (RecommendationDTO reDTO : new HashSet<>(recommendationFacade.findByAuthor(userDTO))) {
             if (reDTO.isVotedUp()) {
                 VoteUserGames.add(reDTO.getGame());
             }

@@ -43,7 +43,6 @@ public class GenreDaoImpl implements GenreDao {
     @Override
     public Genre findById(Long id) {
         Genre genre = em.find(Genre.class, id);
-        populateGames(genre);
         return genre;
     }
 
@@ -55,20 +54,9 @@ public class GenreDaoImpl implements GenreDao {
         try {
             Genre genre = em.createQuery("SELECT g FROM Genre g where g.name =:name",
                     Genre.class).setParameter("name", name).getSingleResult();
-            populateGames(genre);
             return genre;
         } catch (NoResultException ex) {
             return null;
         }
-    }
-
-    private void populateGames(Genre genre){
-        Set<Game> games =
-                new HashSet<>(
-                        em.createQuery(
-                                "SELECT game FROM Game game INNER JOIN game.genres genre WHERE genre.id= :id", Game.class)
-                                .setParameter("id", genre.getId()).getResultList());
-
-        genre.setGames(games);
     }
 }

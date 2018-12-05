@@ -30,7 +30,7 @@
 
         <ul class="nav navbar-nav">
           <li class="${activeNavbarItem == 'Home' ? 'active' : ''}"><a href="${pageContext.request.contextPath}/">Home</a></li>
-          <li class="${activeNavbarItem == 'Game' ? 'active' : ''}"><a href="${pageContext.request.contextPath}/game/download">Games</a></li>
+          <%--<li class="${activeNavbarItem == 'Game' ? 'active' : ''}"><a href="${pageContext.request.contextPath}/game/download">Games</a></li>--%>
           <!--admin view-->
           <c:if test="${authUser.isAdmin}">
           <li class="${activeNavbarItem == 'Users' ? 'active' : ''}"><a href="${pageContext.request.contextPath}/user/list">Users</a></li>
@@ -40,6 +40,7 @@
           <c:if test="${authUser != null && !authUser.isAdmin}">
               <li class="${activeNavbarItem == 'Rate' ? 'active' : ''}"><a href="${pageContext.request.contextPath}/game/rate/0">Rate Games</a></li>
               <li class="${activeNavbarItem == 'Recommend' ? 'active' : ''}"><a href="${pageContext.request.contextPath}/game/recommend">Get Recommendation</a></li>
+              <li class="${activeNavbarItem == 'Games' ? 'active' : ''}"><a href="${pageContext.request.contextPath}/game/rated">Rated Games</a></li>
           </c:if>
         </ul>
         <ul class="nav navbar-nav navbar-right">

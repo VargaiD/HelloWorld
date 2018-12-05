@@ -83,4 +83,24 @@ public class RecommendationFacadeImpl implements RecommendationFacade {
     public List<RecommendationDTO> findNegative() {
         return mappingService.mapTo(recommendationService.findNegative(), RecommendationDTO.class);
     }
+
+    @Override
+    public List<RecommendationDTO> findByAuthor(UserDTO author) {
+        List<Recommendation> recommendation = recommendationService.findByAuthor(
+                mappingService.mapTo(author, User.class));
+        if (recommendation == null)
+            return null;
+
+        return mappingService.mapTo(recommendation, RecommendationDTO.class);
+    }
+
+    @Override
+    public List<RecommendationDTO> findByGame(GameDTO game) {
+        List<Recommendation> recommendation = recommendationService.findByGame(
+                mappingService.mapTo(game, Game.class));
+        if (recommendation == null)
+            return null;
+
+        return mappingService.mapTo(recommendation, RecommendationDTO.class);
+    }
 }

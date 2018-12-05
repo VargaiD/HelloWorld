@@ -52,4 +52,6 @@ public interface UserDao {
      * @return user
      */
     User findBySteamId(Long id);
+
+    User findBySteamId(Long id, boolean populateRecommendations);
 }

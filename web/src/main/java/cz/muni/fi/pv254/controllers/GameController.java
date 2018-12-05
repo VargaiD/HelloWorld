@@ -1,6 +1,8 @@
 package cz.muni.fi.pv254.controllers;
 
+import cz.muni.fi.pv254.algorithms.CollaborativeFiltering;
 import cz.muni.fi.pv254.dto.GameDTO;
+import cz.muni.fi.pv254.dto.GenreDTO;
 import cz.muni.fi.pv254.dto.RecommendationDTO;
 import cz.muni.fi.pv254.dto.UserDTO;
 import cz.muni.fi.pv254.exceptions.ResourceNotFoundException;
@@ -8,6 +10,7 @@ import cz.muni.fi.pv254.facade.GameFacade;
 import cz.muni.fi.pv254.facade.RecommendationFacade;
 import cz.muni.fi.pv254.facade.UserFacade;
 import cz.muni.fi.pv254.parsing.App;
+import cz.muni.fi.pv254.algorithms.contentBasedAlgorithm;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,9 +24,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Controller
 @RequestMapping("/game")
@@ -42,6 +43,12 @@ public class GameController {
 
     @Autowired
     private UserFacade userFacade;
+
+    @Autowired
+    private contentBasedAlgorithm contentBased;
+
+    @Autowired
+    private CollaborativeFiltering collaborative;
 
     @RequestMapping(value = "/download", method = RequestMethod.GET)
     public String Index(Model model,
@@ -77,10 +84,10 @@ public class GameController {
 
         if (authUser != null){
 
-            UserDTO user = userFacade.findById(authUser.getId());
-            Set<RecommendationDTO> recommendations = user.getRecommendations();
+            List<RecommendationDTO> recommendations = recommendationFacade.findByAuthor(authUser);;
 
-            if (recommendations.size() >= 10){
+            Long stepCount = (gameFacade.countGames() / 10);
+            if (recommendations.size() >= stepCount){
                 redirectAttributes.addFlashAttribute("alert_danger", "Games already rated!");
                 return "redirect:/";
             }
@@ -89,9 +96,19 @@ public class GameController {
                 return "redirect:/game/rate/" + recommendations.size();
 
             List<GameDTO> games = gameFacade.findAll();
+
+            if (games.size() < 10 * (step + 1)){
+                redirectAttributes.addFlashAttribute("alert_danger", "Not enough games");
+                return "redirect:/";
+            }
+
+
             games.sort(Comparator.comparing(GameDTO::getSteamId));
-            model.addAttribute("games",games.subList(step * 10, (step * 10) + 9));
+            games = games.subList(step * 10, (step * 10) + 9);
+            model.addAttribute("games",games);
             model.addAttribute("step", step);
+            model.addAttribute("steps", stepCount);
+            populateGenres(games, model);
 
             return "game/rate";
         }
@@ -117,14 +134,9 @@ public class GameController {
                 throw new ResourceNotFoundException();
             recommend.setGame(game);
             recommend.setVotedUp(true);
-            recommend = recommendationFacade.add(recommend);
+            recommendationFacade.add(recommend);
 
-            game.getRecommendations().add(recommend);
-            user.getRecommendations().add(recommend);
-            gameFacade.update(game);
-            userFacade.update(user);
-
-            if (step == 9){
+            if (step == ((gameFacade.countGames() / 10) - 1)){
                 redirectAttributes.addFlashAttribute("alert_info", "Games Successfully Rated!");
                 return "redirect:/";
             }
@@ -141,10 +153,10 @@ public class GameController {
         if (authUser == null){
             return loginRedirect(redirectAttributes);
         }
-        UserDTO user = userFacade.findById(authUser.getId());
-        if (user.getRecommendations().size() < 10){
+        List<RecommendationDTO> recommendations = recommendationFacade.findByAuthor(authUser);
+        if (recommendations.size() < (gameFacade.countGames() / 10)){
             redirectAttributes.addFlashAttribute("alert_info", "Please finish rating games");
-            return "redirect:/game/rate/" + user.getRecommendations().size();
+            return "redirect:/game/rate/" + recommendations.size();
         }
 
         return "game/recommend";
@@ -154,14 +166,20 @@ public class GameController {
     public String CollaborativePearson(Model model,
                                        HttpServletRequest req,
                                        RedirectAttributes redirectAttributes){
-        String redirect = canGetRecommendation(req, redirectAttributes);
+
+        UserDTO authUser = (UserDTO) req.getSession().getAttribute("authUser");
+        String redirect = canGetRecommendation(req, redirectAttributes, recommendationFacade.findByAuthor(authUser));
         if (redirect != null)
             return redirect;
 
-        //Replace with call to collaborative pearson
-        List<GameDTO> games = gameFacade.findAll();
-        games.sort(Comparator.comparing(GameDTO::getSteamId));
-        model.addAttribute("games",games.subList(0, 4));
+        List<GameDTO> games = collaborative.nearestNeighborIntersection(authUser.getId(), true);
+        if (games.size() > 5)
+            games = games.subList(0, 4);
+        model.addAttribute("games",games);
+
+        if (games.size() < 10)
+            populatePictures(games, model);
+        populateGenres(games, model);
 
         return "game/games";
     }
@@ -170,14 +188,61 @@ public class GameController {
     public String CollaborativeDice(Model model,
                                        HttpServletRequest req,
                                        RedirectAttributes redirectAttributes){
-        String redirect = canGetRecommendation(req, redirectAttributes);
+        UserDTO authUser = (UserDTO) req.getSession().getAttribute("authUser");
+        String redirect = canGetRecommendation(req, redirectAttributes, recommendationFacade.findByAuthor(authUser));
         if (redirect != null)
             return redirect;
 
-        //replace with call to collaborative dice
-        List<GameDTO> games = gameFacade.findAll();
-        games.sort(Comparator.comparing(GameDTO::getSteamId));
-        model.addAttribute("games",games.subList(0, 4));
+        List<GameDTO> games = collaborative.nearestNeighborIntersection(authUser.getId(), false);
+        if (games.size() > 5)
+            games = games.subList(0, 4);
+        model.addAttribute("games",games);
+
+        if (games.size() < 10)
+            populatePictures(games, model);
+        populateGenres(games, model);
+
+        return "game/games";
+    }
+
+    @RequestMapping("/collaborativePearsonSubset")
+    public String CollaborativePearsonSubset(Model model,
+                                       HttpServletRequest req,
+                                       RedirectAttributes redirectAttributes){
+        UserDTO authUser = (UserDTO) req.getSession().getAttribute("authUser");
+        String redirect = canGetRecommendation(req, redirectAttributes, recommendationFacade.findByAuthor(authUser));
+        if (redirect != null)
+            return redirect;
+
+        List<GameDTO> games = collaborative.nearestNeighborSubset(authUser.getId(), true);
+        if (games.size() > 5)
+            games = games.subList(0, 4);
+        model.addAttribute("games",games);
+
+        if (games.size() < 10)
+            populatePictures(games, model);
+        populateGenres(games, model);
+
+        return "game/games";
+    }
+
+    @RequestMapping("/collaborativeDiceSubset")
+    public String CollaborativeDiceSubset(Model model,
+                                    HttpServletRequest req,
+                                    RedirectAttributes redirectAttributes){
+        UserDTO authUser = (UserDTO) req.getSession().getAttribute("authUser");
+        String redirect = canGetRecommendation(req, redirectAttributes, recommendationFacade.findByAuthor(authUser));
+        if (redirect != null)
+            return redirect;
+
+        List<GameDTO> games = collaborative.nearestNeighborSubset(authUser.getId(), false);
+        if (games.size() > 5)
+            games = games.subList(0, 4);
+        model.addAttribute("games",games);
+
+        if (games.size() < 10)
+            populatePictures(games, model);
+        populateGenres(games, model);
 
         return "game/games";
     }
@@ -186,30 +251,73 @@ public class GameController {
     public String DescriptionBased(Model model,
                                        HttpServletRequest req,
                                        RedirectAttributes redirectAttributes){
-        String redirect = canGetRecommendation(req, redirectAttributes);
+
+        UserDTO authUser = (UserDTO) req.getSession().getAttribute("authUser");
+        String redirect = canGetRecommendation(req, redirectAttributes, recommendationFacade.findByAuthor(authUser));
         if (redirect != null)
             return redirect;
 
-        //replace with call to content based by description
-        List<GameDTO> games = gameFacade.findAll();
-        games.sort(Comparator.comparing(GameDTO::getSteamId));
-        model.addAttribute("games",games.subList(0, 4));
+        Set<GameDTO> games = contentBased.recommendationByWord(authUser);
+        model.addAttribute("games",games);
+
+        if (games.size() < 10)
+            populatePictures(games, model);
+        populateGenres(games, model);
+
+        return "game/games";
+    }
+
+    @RequestMapping("/genreBasedFrequent")
+    public String GenreBasedFrequent(Model model,
+                                       HttpServletRequest req,
+                                       RedirectAttributes redirectAttributes){
+        UserDTO authUser = (UserDTO) req.getSession().getAttribute("authUser");
+        String redirect = canGetRecommendation(req, redirectAttributes, recommendationFacade.findByAuthor(authUser));
+        if (redirect != null)
+            return redirect;
+
+        Set<GameDTO> games = contentBased.recommendationFrequentByTag(authUser);
+        model.addAttribute("games",games);
+        if (games.size() < 10)
+            populatePictures(games, model);
+        populateGenres(games, model);
 
         return "game/games";
     }
 
     @RequestMapping("/genreBased")
     public String GenreBased(Model model,
-                                       HttpServletRequest req,
-                                       RedirectAttributes redirectAttributes){
-        String redirect = canGetRecommendation(req, redirectAttributes);
+                             HttpServletRequest req,
+                             RedirectAttributes redirectAttributes){
+        UserDTO authUser = (UserDTO) req.getSession().getAttribute("authUser");
+        String redirect = canGetRecommendation(req, redirectAttributes, recommendationFacade.findByAuthor(authUser));
         if (redirect != null)
             return redirect;
 
-        //replace with call to content based by genre
-        List<GameDTO> games = gameFacade.findAll();
-        games.sort(Comparator.comparing(GameDTO::getSteamId));
-        model.addAttribute("games",games.subList(0, 4));
+        Set<GameDTO> games = contentBased.recommendationByTag(authUser);
+        model.addAttribute("games",games);
+        if (games.size() < 10)
+            populatePictures(games, model);
+        populateGenres(games, model);
+
+        return "game/games";
+    }
+
+    @RequestMapping("/rated")
+    public String MyGames(Model model,
+                          HttpServletRequest req,
+                          RedirectAttributes redirectAttributes){
+
+
+        UserDTO authUser = (UserDTO) req.getSession().getAttribute("authUser");
+        String redirect = canGetRecommendation(req, redirectAttributes, recommendationFacade.findByAuthor(authUser));
+        if (redirect != null)
+            return redirect;
+        List<GameDTO> games = gameFacade.findRecommendedByUser(authUser);
+        model.addAttribute("games",games);
+        if (games.size() < 10)
+            populatePictures(games, model);
+        populateGenres(games, model);
 
         return "game/games";
     }
@@ -221,17 +329,43 @@ public class GameController {
     }
 
     private String canGetRecommendation(HttpServletRequest req,
-                                        RedirectAttributes redirectAttributes){
+                                        RedirectAttributes redirectAttributes,
+                                        List<RecommendationDTO> recommendations){
         UserDTO authUser = (UserDTO) req.getSession().getAttribute("authUser");
         if (authUser == null){
             return loginRedirect(redirectAttributes);
         }
-        UserDTO user = userFacade.findById(authUser.getId());
-        if (user.getRecommendations().size() < 10){
+        if (recommendations.size() < (gameFacade.countGames() / 10)){
             redirectAttributes.addFlashAttribute("alert_info", "Please finish rating games");
-            return "redirect:/game/rate/" + user.getRecommendations().size();
+            return "redirect:/game/rate/" + recommendations.size();
         }
 
         return null;
+    }
+
+    private void populatePictures(Collection<GameDTO> games, Model model){
+        Map<Long, String> pictures = new HashMap<>();
+
+        for (GameDTO game: games) {
+            pictures.put(game.getId(), app.downloadGamePictureUrl(game.getSteamId()));
+        }
+
+        model.addAttribute("pictures", pictures);
+    }
+
+    private void populateGenres(Collection<GameDTO> games, Model model){
+        Map<Long, String> genres = new HashMap<>();
+
+        for (GameDTO game: games) {
+            String genresMerged = "";
+            for (GenreDTO genre: game.getGenres()) {
+                genresMerged += genre.getName() + ", ";
+            }
+            if (genresMerged.length() > 2)
+                genresMerged = genresMerged.substring(0, genresMerged.length() - 2);
+            genres.put(game.getId(), genresMerged);
+        }
+
+        model.addAttribute("genres", genres);
     }
 }

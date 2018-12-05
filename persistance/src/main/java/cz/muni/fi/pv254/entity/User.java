@@ -35,9 +35,6 @@ public class User implements Serializable {
     @Column(nullable = false)
     private Boolean isAdmin;
 
-    @OneToMany(mappedBy = "game", cascade = CascadeType.ALL)
-    private Set<Recommendation> recommendations = new HashSet<>();
-
     public User(Long steamId, String passwordHash, String name, String email, Boolean isAdmin) {
         this.steamId = steamId;
         this.passwordHash = passwordHash;
@@ -76,14 +73,6 @@ public class User implements Serializable {
 
     public void setIsAdmin(Boolean isAdmin) { this.isAdmin = isAdmin; }
 
-    public Set<Recommendation> getRecommendations() {
-        return recommendations;
-    }
-
-    public void setRecommendations(Set<Recommendation> recommendations) {
-        this.recommendations = recommendations;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -116,19 +105,4 @@ public class User implements Serializable {
         return isAdmin;
     }
 
-    public void addRecommendation(Recommendation recommendation){
-        if (recommendations.contains(recommendation))
-            return;
-
-        recommendations.add(recommendation);
-        recommendation.setAuthor(this);
-    }
-
-    public void removeRecommendation(Recommendation recommendation){
-        if (!recommendations.contains(recommendation))
-            return;
-
-        recommendations.remove(recommendation);
-        recommendation.setAuthor(null);
-    }
 }

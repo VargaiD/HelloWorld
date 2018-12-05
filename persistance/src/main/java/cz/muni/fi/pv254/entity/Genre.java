@@ -23,9 +23,6 @@ public class Genre {
         this.name = name;
     }
 
-    @ManyToMany(mappedBy = "genres")
-    private Set<Game> games = new HashSet<>();
-
     public Genre() {
     }
 
@@ -47,32 +44,6 @@ public class Genre {
 
     public void setId(Long id) {
         this.id = id;
-    }
-
-    public Set<Game> getGames() {
-        return games;
-    }
-
-    public void setGames(Set<Game> games) {
-        this.games = games;
-    }
-
-    public void addGame(Game game) {
-        if (games.contains(game))
-            return;
-
-        games.add(game);
-
-        game.addGenre(this);
-    }
-
-    public void removeGame(Game game){
-        if (!games.contains(game))
-            return;
-
-        games.add(game);
-
-        game.removeGenre(this);
     }
 
     @Override

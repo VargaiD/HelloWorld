@@ -51,4 +51,8 @@ public interface RecommendationFacade {
     List<RecommendationDTO> findPositive();
 
     List<RecommendationDTO> findNegative();
+
+    List<RecommendationDTO> findByAuthor(UserDTO author);
+
+    List<RecommendationDTO> findByGame(GameDTO game);
 }

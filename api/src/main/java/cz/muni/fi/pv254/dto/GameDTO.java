@@ -10,7 +10,6 @@ public class GameDTO {
     private Long id;
     private String name;
     private Long steamId;
-    private Set<RecommendationDTO> recommendations = new HashSet<>();
     private Set<GenreDTO> genres = new HashSet<>();
     private String shortDescription;
 
@@ -46,14 +45,6 @@ public class GameDTO {
 
     public void setSteamId(Long steamId) {
         this.steamId = steamId;
-    }
-
-    public Set<RecommendationDTO> getRecommendations() {
-        return recommendations;
-    }
-
-    public void setRecommendations(Set<RecommendationDTO> recommendations) {
-        this.recommendations = recommendations;
     }
 
     public Set<GenreDTO> getGenres() {
