@@ -26,33 +26,6 @@
         </form>
     </div>
 </div>
-
-<div class="row">
-    <div class="col-8 col-md-8 col-md-offset-2">
-        <h4>List of preregistered test users:</h4>
-        <table class="table">
-            <thead>
-            <tr>
-                <th>user mail</th>
-                <th>user password</th>
-                <th>user role</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr>
-                <td>admin@google.com</td>
-                <td>password</td>
-                <td>admin</td>
-            </tr>
-            <tr>
-                <td>user@google.com</td>
-                <td>password</td>
-                <td>user</td>
-            </tr>
-            </tbody>
-        </table>
-    </div>
-</div>
     <div class="row">
         <div class="col-4 col-md-4 col-md-offset-4">
             <label for="register">Not yet registered?</label>

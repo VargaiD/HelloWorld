@@ -13,15 +13,6 @@ public class UserDTO {
     private String email;
     private Boolean isAdmin;
     private Long steamId;
-    private Set<RecommendationDTO> recommendations = new HashSet<>();
-
-    public Set<RecommendationDTO> getRecommendations() {
-        return recommendations;
-    }
-
-    public void setRecommendations(Set<RecommendationDTO> recommendations) {
-        this.recommendations = recommendations;
-    }
 
     public Long getSteamId() {
         return steamId;

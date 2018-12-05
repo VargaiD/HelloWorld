@@ -56,4 +56,6 @@ public interface GameService {
      * @return list of games
      */
     List<Game>findRecommendedByUser(User author);
+
+    Long countGames();
 }

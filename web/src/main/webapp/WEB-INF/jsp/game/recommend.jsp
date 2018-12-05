@@ -16,6 +16,12 @@
         <a href="${pageContext.request.contextPath}/game/collaborativeDice">
             <button class="btn btn-lg btn-primary btn-block">Collaborative Dice</button>
         </a>
+        <a href="${pageContext.request.contextPath}/game/collaborativePearsonSubset">
+            <button class="btn btn-lg btn-primary btn-block">Collaborative Pearson Subset</button>
+        </a>
+        <a href="${pageContext.request.contextPath}/game/collaborativeDiceSubset">
+            <button class="btn btn-lg btn-primary btn-block">Collaborative Dice Subset</button>
+        </a>
         <a href="${pageContext.request.contextPath}/game/genreBased">
             <button class="btn btn-lg btn-primary btn-block">Genre Based</button>
         </a>

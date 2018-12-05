@@ -1,7 +1,5 @@
 package cz.muni.fi.pv254.entity;
 
-import org.hibernate.annotations.Type;
-
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.util.HashSet;
@@ -23,9 +21,6 @@ public class Game {
     @NotNull
     @Column(nullable = false)
     private Long steamId;
-
-    @OneToMany(mappedBy = "game", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private Set<Recommendation> recommendations = new HashSet<>();
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.PERSIST)
     @JoinTable(name="games_genres", joinColumns = @JoinColumn(name = "games_id"), inverseJoinColumns = @JoinColumn(name = "genres_id"))
@@ -70,14 +65,6 @@ public class Game {
         this.name = name;
     }
 
-    public Set<Recommendation> getRecommendations() {
-        return recommendations;
-    }
-
-    public void setRecommendations(Set<Recommendation> recommendations) {
-        this.recommendations = recommendations;
-    }
-
 
     @Override
     public boolean equals(Object o) {
@@ -90,7 +77,7 @@ public class Game {
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, steamId, recommendations.size());
+        return Objects.hash(name, steamId);
     }
 
     @Override
@@ -99,7 +86,6 @@ public class Game {
                 "id=" + id +
                 ", name='" + name + '\'' +
                 ", steamId=" + steamId +
-                ", recommendations=" + recommendations +
                 '}';
     }
 
@@ -111,29 +97,11 @@ public class Game {
         this.genres = genres;
     }
 
-    public void addRecommendation(Recommendation recommendation){
-        if (recommendations.contains(recommendation))
-            return;
-
-        recommendations.add(recommendation);
-
-        recommendation.setGame(this);
-    }
-
-    public void removeRecommendation(Recommendation recommendation){
-        if (!recommendations.contains(recommendation))
-            return;
-
-        recommendations.remove(recommendation);
-        recommendation.setGame(null);
-    }
-
     public void addGenre(Genre genre){
         if (genres.contains(genre))
             return;
 
         genres.add(genre);
-        genre.addGame(this);
     }
 
     public void removeGenre(Genre genre){
@@ -141,7 +109,6 @@ public class Game {
             return;
 
         genres.remove(genre);
-        genre.removeGame(this);
     }
 
     public String getShortDescription() {

@@ -53,4 +53,8 @@ public interface RecommendationService {
     List<Recommendation> findPositive();
 
     List<Recommendation> findNegative();
+
+    List<Recommendation> findByAuthor(User author);
+
+    List<Recommendation> findByGame(Game game);
 }

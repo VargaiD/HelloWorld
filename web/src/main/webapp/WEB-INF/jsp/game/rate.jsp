@@ -9,7 +9,7 @@
 
 <jsp:attribute name="body">
     <div class="container">
-        <h1>Choose one game you like, step: ${step + 1}/9</h1>
+        <h1>Choose one game you like, step: ${step + 1}/${steps}</h1>
             <table class="table">
                 <thead>
                 <tr>

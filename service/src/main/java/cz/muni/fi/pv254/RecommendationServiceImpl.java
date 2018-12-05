@@ -1,6 +1,7 @@
 package cz.muni.fi.pv254;
 
 import cz.muni.fi.pv254.dao.RecommendationDao;
+import cz.muni.fi.pv254.dto.UserDTO;
 import cz.muni.fi.pv254.entity.Game;
 import cz.muni.fi.pv254.entity.Recommendation;
 import cz.muni.fi.pv254.entity.User;
@@ -111,6 +112,28 @@ public class RecommendationServiceImpl implements RecommendationService {
     public List<Recommendation> findNegative() {
         try {
             return recommendationDao.findNegative();
+        } catch (NullPointerException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw new PersistenceException(ex.getMessage());
+        }
+    }
+
+    @Override
+    public List<Recommendation> findByAuthor(User author){
+        try {
+            return recommendationDao.findByAuthor(author);
+        } catch (NullPointerException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw new PersistenceException(ex.getMessage());
+        }
+    }
+
+    @Override
+    public List<Recommendation> findByGame(Game game) {
+        try {
+            return recommendationDao.findByGame(game);
         } catch (NullPointerException ex) {
             throw ex;
         } catch (Exception ex) {

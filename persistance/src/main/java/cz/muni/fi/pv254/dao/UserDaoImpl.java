@@ -43,7 +43,6 @@ public class UserDaoImpl implements UserDao {
     @Override
     public User findById(Long id) {
         User user =  em.find(User.class, id);
-        populateRecommendations(user);
         return user;
     }
 
@@ -55,7 +54,6 @@ public class UserDaoImpl implements UserDao {
         try {
             User user = em.createQuery("SELECT u FROM User u where u.email=:email",
                         User.class).setParameter("email", email).getSingleResult();
-            populateRecommendations(user);
             return user;
         } catch (NoResultException ex) {
             return null;
@@ -76,18 +74,10 @@ public class UserDaoImpl implements UserDao {
         try {
             User user = em.createQuery("Select user From User user Where user.steamId = :id",
                     User.class).setParameter("id", id).getSingleResult();
-            if (populateRecommendations)
-                populateRecommendations(user);
             return user;
         }
         catch (NoResultException e) {
             return null;
         }
-    }
-
-    private void populateRecommendations(User user){
-        Set<Recommendation> recs = new HashSet<>(em.createQuery("SELECT rec FROM Recommendation rec WHERE rec.author.id= :id", Recommendation.class)
-                .setParameter("id", user.getId()).getResultList());
-        user.setRecommendations(recs);
     }
 }

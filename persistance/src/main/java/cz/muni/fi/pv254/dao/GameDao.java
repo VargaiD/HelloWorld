@@ -63,4 +63,6 @@ public interface GameDao {
      * @return list of games
      */
     List<Game>findRecommendedByUser(User author);
+
+    Long countGames();
 }

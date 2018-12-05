@@ -42,14 +42,13 @@ public class GameDaoImpl implements GameDao {
 
     @Override
     public List<Game> findAll() {
-        return em.createQuery("SELECT game FROM Game game", Game.class)
+        return em.createQuery("SELECT DISTINCT game FROM Game game LEFT JOIN FETCH game.words", Game.class)
                 .getResultList();
     }
 
     @Override
     public Game findById(Long id) {
         Game game = em.find(Game.class, id);
-        PopulateGenres(game);
         return game;
     }
 
@@ -61,7 +60,6 @@ public class GameDaoImpl implements GameDao {
         try {
             Game game = em.createQuery("SELECT game FROM Game game WHERE game.name =:name",
                         Game.class).setParameter("name", name).getSingleResult();
-            PopulateGenres(game);
             return game;
         } catch (NoResultException ex) {
             return null;
@@ -75,11 +73,9 @@ public class GameDaoImpl implements GameDao {
         }
         try {
             Game game = em.createQuery("Select game From Game game LEFT JOIN FETCH" +
-                    " game.genres LEFT JOIN FETCH game.words LEFT JOIN FETCH" +
-                    " game.recommendations rec LEFT JOIN FETCH rec.author a left join fetch a.recommendations WHERE" +
+                    " game.genres LEFT JOIN FETCH game.words WHERE" +
                     " game.steamId = :id", Game.class)
                     .setParameter("id", id).getSingleResult();
-            PopulateGenres(game);
             return game;
         }
         catch (NoResultException e) {
@@ -101,15 +97,9 @@ public class GameDaoImpl implements GameDao {
         }
     }
 
-
-    private void PopulateGenres(Game game){
-        Set<Genre> genres =
-                new HashSet<>(
-                        em.createQuery(
-                                "SELECT genre FROM Genre genre INNER JOIN genre.games game WHERE game.id= :id", Genre.class)
-                                .setParameter("id", game.getId()).getResultList());
-
-        game.setGenres(genres);
+    @Override
+    public Long countGames() {
+        return em.createQuery("SELECT count(game) from Game game", Long.class).getSingleResult();
     }
-    
+
 }

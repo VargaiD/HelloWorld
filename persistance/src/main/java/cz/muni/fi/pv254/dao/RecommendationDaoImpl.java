@@ -90,4 +90,32 @@ public class RecommendationDaoImpl implements RecommendationDao {
                 .getResultList();
     }
 
+    @Override
+    public List<Recommendation> findByAuthor(User author) {
+        if (author == null || author.getId() == null) {
+            throw new IllegalArgumentException("Cannot search for author id null");
+        }
+        try {
+            return em.createQuery("Select recommendation From Recommendation recommendation Where recommendation.author.id = :id",
+                    Recommendation.class).setParameter("id", author.getId()).getResultList();
+        }
+        catch (NoResultException e) {
+            return null;
+        }
+    }
+
+    @Override
+    public List<Recommendation> findByGame(Game game) {
+        if (game == null || game.getId() == null) {
+            throw new IllegalArgumentException("Cannot search for game id null");
+        }
+        try {
+            return em.createQuery("Select recommendation From Recommendation recommendation Where recommendation.game.id = :id",
+                    Recommendation.class).setParameter("id", game.getId()).getResultList();
+        }
+        catch (NoResultException e) {
+            return null;
+        }
+    }
+
 }

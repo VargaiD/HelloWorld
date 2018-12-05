@@ -18,6 +18,7 @@ public class Recommendation {
     @ManyToOne(fetch = FetchType.LAZY)
     private User author;
 
+    @JoinColumn(name="games_id")
     @ManyToOne(fetch = FetchType.LAZY)
     private Game game;
 
@@ -116,8 +117,8 @@ public class Recommendation {
         if (o == null || getClass() != o.getClass()) return false;
         Recommendation that = (Recommendation) o;
         return steamId == that.steamId &&
-                game.getId() == that.game.getId() &&
-                author.getId() == that.author.getId() &&
+                ((game == null && that.game == null) || game.getId() == that.game.getId()) &&
+                ((author == null && that.author == null) || author.getId() == that.author.getId()) &&
                 votedUp == that.votedUp &&
                 Double.compare(that.weightedVoteScore, weightedVoteScore) == 0 &&
                 earlyAccess == that.earlyAccess &&
