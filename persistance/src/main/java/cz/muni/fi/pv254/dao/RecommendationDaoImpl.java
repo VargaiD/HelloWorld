@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
+import javax.persistence.NonUniqueResultException;
 import javax.persistence.PersistenceContext;
 
 @Transactional
@@ -75,6 +76,11 @@ public class RecommendationDaoImpl implements RecommendationDao {
         }
         catch (NoResultException ex){
             return null;
+        }
+        catch (NonUniqueResultException e){
+            return em.createQuery("SELECT recommendation from Recommendation  recommendation WHERE" +
+                    " recommendation.game.id = :gameid AND recommendation.author.id = :authorid", Recommendation.class)
+                    .setParameter("gameid", game.getId()).setParameter("authorid", author.getId()).getResultList().get(0);
         }
     }
 
