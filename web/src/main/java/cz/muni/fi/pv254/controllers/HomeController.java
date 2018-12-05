@@ -29,7 +29,7 @@ public class HomeController {
                        HttpServletRequest req,
                        HttpServletResponse res){
 
-        Long stepCount = (gameFacade.countGames() / 10);
+        Long stepCount = Math.min(gameFacade.countGames() / 10, 10);
         model.addAttribute("steps", stepCount);
         return "/home";
     }

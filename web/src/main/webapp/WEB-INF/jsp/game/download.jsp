@@ -19,6 +19,13 @@
 
             <button class="btn btn-lg btn-primary btn-block" type="submit">Download</button>
         </form:form>
+
+        <form:form class="form" method="POST" action="${pageContext.request.contextPath}">
+            <button class="btn btn-lg btn-primary btn-block" type="submit">Download All</button>
+        </form:form>
+        <form:form class="form" method="POST" action="${pageContext.request.contextPath}/descriptions">
+            <button class="btn btn-lg btn-primary btn-block" type="submit">Download Descriptions</button>
+        </form:form>
     </div>
 </jsp:attribute>
 
