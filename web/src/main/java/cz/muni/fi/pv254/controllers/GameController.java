@@ -115,10 +115,11 @@ public class GameController {
         return loginRedirect(redirectAttributes);
     }
 
-    @RequestMapping(value = "/rate/{step}/{id}", method = RequestMethod.POST)
+    @RequestMapping(value = "/rate/{step}/{id}/{like}", method = RequestMethod.POST)
     public String rateSingle(
             @PathVariable("step") int step,
             @PathVariable("id") Long id,
+            @PathVariable ("like") int like,
             Model model,
             HttpServletRequest req,
             RedirectAttributes redirectAttributes){
@@ -133,7 +134,7 @@ public class GameController {
             if (game == null)
                 throw new ResourceNotFoundException();
             recommend.setGame(game);
-            recommend.setVotedUp(true);
+            recommend.setVotedUp(like == 1);
             recommendationFacade.add(recommend);
 
             if (step == ((gameFacade.countGames() / 10) - 1)){
