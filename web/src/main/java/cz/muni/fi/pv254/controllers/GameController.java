@@ -173,7 +173,8 @@ public class GameController {
             return redirect;
 
         List<GameDTO> games = collaborative.nearestNeighborIntersection(authUser.getId(), true);
-        games = games.subList(0, 4);
+        if (games.size() > 5)
+            games = games.subList(0, 4);
         model.addAttribute("games",games);
 
         if (games.size() < 10)
@@ -193,7 +194,8 @@ public class GameController {
             return redirect;
 
         List<GameDTO> games = collaborative.nearestNeighborIntersection(authUser.getId(), false);
-        games = games.subList(0, 4);
+        if (games.size() > 5)
+            games = games.subList(0, 4);
         model.addAttribute("games",games);
 
         if (games.size() < 10)
@@ -213,7 +215,8 @@ public class GameController {
             return redirect;
 
         List<GameDTO> games = collaborative.nearestNeighborSubset(authUser.getId(), true);
-        games = games.subList(0, 4);
+        if (games.size() > 5)
+            games = games.subList(0, 4);
         model.addAttribute("games",games);
 
         if (games.size() < 10)
@@ -233,7 +236,8 @@ public class GameController {
             return redirect;
 
         List<GameDTO> games = collaborative.nearestNeighborSubset(authUser.getId(), false);
-        games = games.subList(0, 4);
+        if (games.size() > 5)
+            games = games.subList(0, 4);
         model.addAttribute("games",games);
 
         if (games.size() < 10)
