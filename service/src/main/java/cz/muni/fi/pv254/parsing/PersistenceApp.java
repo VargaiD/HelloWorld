@@ -11,10 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.NoResultException;
-import javax.persistence.PersistenceContext;
+import javax.persistence.*;
 import javax.xml.ws.http.HTTPException;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -22,6 +19,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -97,6 +95,12 @@ public class PersistenceApp {
     }
 
     public int inteligentParse(long gameID) {
+        try {
+            Thread.sleep(5000L);
+        }
+        catch (InterruptedException e) {
+            System.out.println(e.toString());
+        }
         EntityManager em = emf.createEntityManager();
         em.getTransaction().begin();
         Game game;
@@ -114,6 +118,10 @@ public class PersistenceApp {
             game.setName(app.downloadGameName(gameID));
             game.setShortDescription(app.downloadShortDescritpion(gameID));
         }
+        if (debug >= 1) {
+            System.out.println(game.getName());
+        }
+//        em.persist(game);
         Set<Genre> genres = parseGenres(game,em);
         game.setGenres(genres);
         Set<Recommendation> recommendations = new HashSet<>();
@@ -157,12 +165,18 @@ public class PersistenceApp {
         }
         em.persist(game);
         for (Recommendation rec : recommendations) {
-            if (rec.getAuthor().getId() == null && rec.getId() == null) {
-                em.merge(rec);
-                //TODO change to persist and test exceptions
+            try {
+
+                if (rec.getAuthor().getId() == null && rec.getId() == null) {
+                    em.merge(rec);
+                    //TODO change to persist and test exceptions
+                }
+                else{
+                    em.merge(rec);
+                }
             }
-            else{
-                em.merge(rec);
+            catch (PersistenceException e) {
+                System.out.println(e.toString() + " CONTINUING");
             }
 
         }
@@ -213,7 +227,7 @@ public class PersistenceApp {
         }
         catch (NoResultException e) {
             author =  null;
-        }
+        }//TODO more results exception
         if (author == null) {
             String authorName = Long.toString(authorId);//downloadUserName(authorId);
             author = new User();
