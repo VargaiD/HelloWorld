@@ -86,7 +86,7 @@ public class GameController {
 
             List<RecommendationDTO> recommendations = recommendationFacade.findByAuthor(authUser);;
 
-            Long stepCount = (gameFacade.countGames() / 10);
+            Long stepCount = Math.min(gameFacade.countGames() / 10, 10);
             if (recommendations.size() >= stepCount){
                 redirectAttributes.addFlashAttribute("alert_danger", "Games already rated!");
                 return "redirect:/";
@@ -137,7 +137,9 @@ public class GameController {
             recommend.setVotedUp(like == 1);
             recommendationFacade.add(recommend);
 
-            if (step == ((gameFacade.countGames() / 10) - 1)){
+            Long stepCount = Math.min(gameFacade.countGames() / 10, 10);
+
+            if (step == (stepCount - 1)){
                 redirectAttributes.addFlashAttribute("alert_info", "Games Successfully Rated!");
                 return "redirect:/";
             }
@@ -154,8 +156,10 @@ public class GameController {
         if (authUser == null){
             return loginRedirect(redirectAttributes);
         }
+
+        Long stepCount = Math.min(gameFacade.countGames() / 10, 10);
         List<RecommendationDTO> recommendations = recommendationFacade.findByAuthor(authUser);
-        if (recommendations.size() < (gameFacade.countGames() / 10)){
+        if (recommendations.size() < stepCount){
             redirectAttributes.addFlashAttribute("alert_info", "Please finish rating games");
             return "redirect:/game/rate/" + recommendations.size();
         }
@@ -336,7 +340,8 @@ public class GameController {
         if (authUser == null){
             return loginRedirect(redirectAttributes);
         }
-        if (recommendations.size() < (gameFacade.countGames() / 10)){
+        Long stepCount = Math.min(gameFacade.countGames() / 10, 10);
+        if (recommendations.size() < stepCount){
             redirectAttributes.addFlashAttribute("alert_info", "Please finish rating games");
             return "redirect:/game/rate/" + recommendations.size();
         }
