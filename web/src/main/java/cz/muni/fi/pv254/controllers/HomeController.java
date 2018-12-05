@@ -1,5 +1,6 @@
 package cz.muni.fi.pv254.controllers;
 
+import cz.muni.fi.pv254.facade.GameFacade;
 import cz.muni.fi.pv254.parsing.App;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,11 +21,16 @@ public class HomeController {
     @Autowired
     private App app;
 
+    @Autowired
+    private GameFacade gameFacade;
+
     @RequestMapping(value = "/", method = RequestMethod.GET)
     public String Home(Model model,
                        HttpServletRequest req,
                        HttpServletResponse res){
 
+        Long stepCount = (gameFacade.countGames() / 10);
+        model.addAttribute("steps", stepCount);
         return "/home";
     }
 
