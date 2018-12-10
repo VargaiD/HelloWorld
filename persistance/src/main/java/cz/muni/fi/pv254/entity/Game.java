@@ -18,8 +18,8 @@ public class Game {
     @Column(nullable = false)
     private String name;
 
-    @NotNull
-    @Column(nullable = false)
+//    @NotNull
+//    @Column(nullable = false)
     private Long steamId;
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.PERSIST)

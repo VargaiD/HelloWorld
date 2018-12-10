@@ -99,7 +99,7 @@ public class Recommendation {
         return weightedVoteScore;
     }
 
-    public void setWeightedVoteScore(Long weightedVoteScore) {
+    public void setWeightedVoteScore(Double weightedVoteScore) {
         this.weightedVoteScore = weightedVoteScore;
     }
 
