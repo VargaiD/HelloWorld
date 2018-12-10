@@ -80,30 +80,53 @@
             <artifactId>game-recommender-sampledata</artifactId>
             <version>1.0</version>
         </dependency>
+
     </dependencies>
+    <build>
+        <!-- what to do when only "mvn" is run -->
+        <defaultGoal>cargo:run</defaultGoal>
+        <!-- name of the produced war -->
+        <finalName>game-recommender</finalName>
+        <plugins>
+            <!--  embedded Tomcat -->
+            <plugin>
+                <groupId>org.codehaus.cargo</groupId>
+                <artifactId>cargo-maven2-plugin</artifactId>
+                <version>1.7.1</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <version>3.2.2</version>
+                <configuration>
+                    <failOnMissingWebXml>false</failOnMissingWebXml>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
-<build>
+<!--<build>-->
 
-    <defaultGoal>tomcat7:run</defaultGoal>
-    <plugins>
-        <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-war-plugin</artifactId>
-            <version>2.5</version>
-            <configuration>
-                <failOnMissingWebXml>false</failOnMissingWebXml>
-            </configuration>
-        </plugin>
-        <!--  embedded tomcat -->
-        <plugin>
-            <groupId>org.apache.tomcat.maven</groupId>
-            <artifactId>tomcat7-maven-plugin</artifactId>
-            <version>2.2</version>
-            <configuration>
-                <path>/pv254</path>
-            </configuration>
-        </plugin>
-    </plugins>
-</build>
+    <!--<defaultGoal>tomcat7:run</defaultGoal>-->
+    <!--<plugins>-->
+        <!--<plugin>-->
+            <!--<groupId>org.apache.maven.plugins</groupId>-->
+            <!--<artifactId>maven-war-plugin</artifactId>-->
+            <!--<version>2.5</version>-->
+            <!--<configuration>-->
+                <!--<failOnMissingWebXml>false</failOnMissingWebXml>-->
+            <!--</configuration>-->
+        <!--</plugin>-->
+        <!--&lt;!&ndash;  embedded tomcat &ndash;&gt;-->
+        <!--<plugin>-->
+            <!--<groupId>org.apache.tomcat.maven</groupId>-->
+            <!--<artifactId>tomcat7-maven-plugin</artifactId>-->
+            <!--<version>2.2</version>-->
+            <!--<configuration>-->
+                <!--<path>/pv254</path>-->
+            <!--</configuration>-->
+        <!--</plugin>-->
+    <!--</plugins>-->
+<!--</build>-->
 
 </project>
