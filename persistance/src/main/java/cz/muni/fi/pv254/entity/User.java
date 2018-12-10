@@ -27,7 +27,7 @@ public class User implements Serializable {
     private String name;
 
     @NotNull
-    @Column(nullable=false,length = 64)
+    @Column(nullable=false,unique = true, length = 64)
 //    @Pattern(regexp=".+@.+\\....?")
     private String email;
 
