@@ -76,7 +76,7 @@ public class GameController {
 
 
     @RequestMapping(value = "/rate/{step}", method = RequestMethod.GET)
-    public String rateGames(
+    public String RateGames(
             @PathVariable("step") int step,
             Model model,
             HttpServletRequest req,
@@ -118,7 +118,7 @@ public class GameController {
     }
 
     @RequestMapping(value = "/rate/{step}/{id}/{like}", method = RequestMethod.POST)
-    public String rateSingle(
+    public String RateSingle(
             @PathVariable("step") int step,
             @PathVariable("id") Long id,
             @PathVariable ("like") int like,
@@ -152,7 +152,7 @@ public class GameController {
     }
 
     @RequestMapping(value = "/recommend", method = RequestMethod.GET)
-    public String recommend(HttpServletRequest req,
+    public String Recommend(HttpServletRequest req,
                             RedirectAttributes redirectAttributes){
         UserDTO authUser = (UserDTO) req.getSession().getAttribute("authUser");
         if (authUser == null){
@@ -164,6 +164,17 @@ public class GameController {
         if (recommendations.size() < stepCount){
             redirectAttributes.addFlashAttribute("alert_info", "Please finish rating games");
             return "redirect:/game/rate/" + recommendations.size();
+        }
+
+        int random = (int)(Math.random() * 7);
+        switch (random){
+            case 0 : return "redirect:/game/collaborativePearson";
+            case 1 : return "redirect:/game/collaborativeDice";
+            case 2 : return "redirect:/game/collaborativePearsonSubset";
+            case 3 : return "redirect:/game/collaborativeDiceSubset";
+            case 4 : return "redirect:/game/descriptionBased";
+            case 5 : return "redirect:/game/genreBasedFrequent";
+            case 6 : return "redirect:/game/genreBased";
         }
 
         return "game/recommend";
