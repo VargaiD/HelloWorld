@@ -18,6 +18,9 @@
             <button class="btn btn-lg btn-primary btn-block" type="submit">No</button>
         </form:form>
     </c:if>
+    <c:if test="${!canRateAlgorithm}">
+        <h3>This algorithm was already rated, thank you!</h3>
+    </c:if>
         <table class="table">
             <thead>
             <tr>
