@@ -1,11 +1,10 @@
 package cz.muni.fi.pv254.controllers;
 
 import cz.muni.fi.pv254.algorithms.CollaborativeFiltering;
-import cz.muni.fi.pv254.dto.GameDTO;
-import cz.muni.fi.pv254.dto.GenreDTO;
-import cz.muni.fi.pv254.dto.RecommendationDTO;
-import cz.muni.fi.pv254.dto.UserDTO;
+import cz.muni.fi.pv254.dto.*;
+import cz.muni.fi.pv254.enums.AlgorithmType;
 import cz.muni.fi.pv254.exceptions.ResourceNotFoundException;
+import cz.muni.fi.pv254.facade.AlgorithmRatingFacade;
 import cz.muni.fi.pv254.facade.GameFacade;
 import cz.muni.fi.pv254.facade.RecommendationFacade;
 import cz.muni.fi.pv254.facade.UserFacade;
@@ -45,6 +44,9 @@ public class GameController {
     private UserFacade userFacade;
 
     @Autowired
+    private AlgorithmRatingFacade algorithmRatingFacade;
+
+    @Autowired
     private contentBasedAlgorithm contentBased;
 
     @Autowired
@@ -74,7 +76,7 @@ public class GameController {
 
 
     @RequestMapping(value = "/rate/{step}", method = RequestMethod.GET)
-    public String rateGames(
+    public String RateGames(
             @PathVariable("step") int step,
             Model model,
             HttpServletRequest req,
@@ -116,7 +118,7 @@ public class GameController {
     }
 
     @RequestMapping(value = "/rate/{step}/{id}/{like}", method = RequestMethod.POST)
-    public String rateSingle(
+    public String RateSingle(
             @PathVariable("step") int step,
             @PathVariable("id") Long id,
             @PathVariable ("like") int like,
@@ -150,7 +152,7 @@ public class GameController {
     }
 
     @RequestMapping(value = "/recommend", method = RequestMethod.GET)
-    public String recommend(HttpServletRequest req,
+    public String Recommend(HttpServletRequest req,
                             RedirectAttributes redirectAttributes){
         UserDTO authUser = (UserDTO) req.getSession().getAttribute("authUser");
         if (authUser == null){
@@ -162,6 +164,17 @@ public class GameController {
         if (recommendations.size() < stepCount){
             redirectAttributes.addFlashAttribute("alert_info", "Please finish rating games");
             return "redirect:/game/rate/" + recommendations.size();
+        }
+
+        int random = (int)(Math.random() * 7);
+        switch (random){
+            case 0 : return "redirect:/game/collaborativePearson";
+            case 1 : return "redirect:/game/collaborativeDice";
+            case 2 : return "redirect:/game/collaborativePearsonSubset";
+            case 3 : return "redirect:/game/collaborativeDiceSubset";
+            case 4 : return "redirect:/game/descriptionBased";
+            case 5 : return "redirect:/game/genreBasedFrequent";
+            case 6 : return "redirect:/game/genreBased";
         }
 
         return "game/recommend";
@@ -186,6 +199,8 @@ public class GameController {
             populatePictures(games, model);
         populateGenres(games, model);
 
+        setCanRateAlgorithm(model, authUser, AlgorithmType.CollaborativePearson);
+
         return "game/games";
     }
 
@@ -206,6 +221,8 @@ public class GameController {
         if (games.size() < 10)
             populatePictures(games, model);
         populateGenres(games, model);
+
+        setCanRateAlgorithm(model, authUser, AlgorithmType.CollaborativeDice);
 
         return "game/games";
     }
@@ -228,6 +245,8 @@ public class GameController {
             populatePictures(games, model);
         populateGenres(games, model);
 
+        setCanRateAlgorithm(model, authUser, AlgorithmType.CollaborativePearsonSubset);
+
         return "game/games";
     }
 
@@ -249,6 +268,8 @@ public class GameController {
             populatePictures(games, model);
         populateGenres(games, model);
 
+        setCanRateAlgorithm(model, authUser, AlgorithmType.CollaborativeDiceSubset);
+
         return "game/games";
     }
 
@@ -269,6 +290,8 @@ public class GameController {
             populatePictures(games, model);
         populateGenres(games, model);
 
+        setCanRateAlgorithm(model, authUser, AlgorithmType.DescriptionBased);
+
         return "game/games";
     }
 
@@ -287,6 +310,8 @@ public class GameController {
             populatePictures(games, model);
         populateGenres(games, model);
 
+        setCanRateAlgorithm(model, authUser, AlgorithmType.GenreBasedFrequent);
+
         return "game/games";
     }
 
@@ -304,6 +329,9 @@ public class GameController {
         if (games.size() < 10)
             populatePictures(games, model);
         populateGenres(games, model);
+
+        setCanRateAlgorithm(model, authUser, AlgorithmType.GenreBased);
+
 
         return "game/games";
     }
@@ -324,7 +352,26 @@ public class GameController {
             populatePictures(games, model);
         populateGenres(games, model);
 
+        model.addAttribute("canRateAlgorithm", false);
+
         return "game/games";
+    }
+
+    @RequestMapping(value = "/rateAlgorithm/{algoType}/{like}", method = RequestMethod.POST)
+    public String RateAlgorithm(Model model,
+                                HttpServletRequest req,
+                                RedirectAttributes redirectAttributes,
+                                @PathVariable AlgorithmType algoType,
+                                @PathVariable boolean like){
+        UserDTO authUser = (UserDTO) req.getSession().getAttribute("authUser");
+
+        AlgorithmRatingDTO rating = algorithmRatingFacade.findByAuthorAndType(authUser, algoType);
+        if (rating == null){
+            AlgorithmRatingDTO ratingDTO = new AlgorithmRatingDTO(authUser, like, algoType);
+            algorithmRatingFacade.add(ratingDTO);
+        }
+
+        return "redirect:/";
     }
 
     private String loginRedirect(RedirectAttributes redirectAttributes) {
@@ -373,5 +420,11 @@ public class GameController {
         }
 
         model.addAttribute("genres", genres);
+    }
+
+    private void setCanRateAlgorithm(Model model, UserDTO user, AlgorithmType algoType){
+        model.addAttribute("algorithm", algoType);
+        AlgorithmRatingDTO rating = algorithmRatingFacade.findByAuthorAndType(user, algoType);
+        model.addAttribute("canRateAlgorithm", rating == null);
     }
 }

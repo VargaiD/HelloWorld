@@ -66,7 +66,16 @@ public class UsersController {
             }
         } else {
             formBean.setIsAdmin(false);
-            userFacade.add(formBean, password);
+            if (formBean.getEmail() != null){
+                UserDTO existingUser = userFacade.findByEmail(formBean.getEmail());
+                if (existingUser != null){
+                    redirectAttributes.addFlashAttribute("alert_danger", "Email is already in use");
+                    return "redirect:/user/create";
+                }
+                else {
+                    userFacade.add(formBean, password);
+                }
+            }
         }
 
         redirectAttributes.addFlashAttribute (
